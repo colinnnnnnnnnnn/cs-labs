@@ -455,6 +455,4 @@ The full source code for this laboratory work is available on GitHub:\
 
 The repository contains:
 - `caesar_cipher.py` — core implementation and interactive CLI (Tasks 1.1 and 1.2)
-- `test_caesar.py` — unit test suite (8 tests, all passing)
 - `demo.py` — non-interactive demonstration script
-- `generate_screenshots.py` — script used to render the terminal screenshots in this report
