@@ -1,0 +1,776 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{combelow}
+
+% Distinguished font pairing: Palatino body, Inconsolata mono, Helvetica sans
+\usepackage{newpxtext,newpxmath}
+\usepackage[scaled=0.88]{inconsolata}
+\usepackage[scaled=0.92]{helvet}
+
+\usepackage[left=2.2cm,right=2.0cm,top=2.2cm,bottom=2.2cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figures/}}
+\setstretch{1.15}
+\setlength{\parindent}{1.0cm}
+\setlength{\parskip}{0pt}
+
+% Color accents matching Lab 2
+\definecolor{primary}{HTML}{1E3A5F}
+\definecolor{secondary}{HTML}{2563EB}
+\definecolor{cipherbg}{HTML}{F8FAFC}
+\definecolor{cipherframe}{HTML}{CBD5E1}
+\definecolor{plainbg}{HTML}{F3F8F4}
+\definecolor{plainframe}{HTML}{166534}
+
+% Code highlighting colors
+\definecolor{codebg}{HTML}{F8FAFC}
+\definecolor{codeframe}{HTML}{CBD5E1}
+\definecolor{keywordcolor}{HTML}{1D4ED8}
+\definecolor{stringcolor}{HTML}{047857}
+\definecolor{commentcolor}{HTML}{64748B}
+\definecolor{numbercolor}{HTML}{94A3B8}
+
+% Clean section styling
+\titleformat{\section}
+  {\normalfont\bfseries\sffamily\color{primary}\fontsize{13}{16}\selectfont}
+  {\thesection}{0.7em}{\MakeUppercase}
+\titleformat{name=\section,numberless}
+  {\normalfont\bfseries\sffamily\color{primary}\fontsize{13}{16}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalfont\bfseries\sffamily\color{secondary}\fontsize{11.5}{14}\selectfont}
+  {\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}
+  {\normalfont\bfseries\sffamily\color{primary}\fontsize{10.5}{13}\selectfont}
+  {\thesubsubsection}{0.6em}{}
+
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{8pt}{3pt}
+
+% Headers and Footers
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\textit{Cryptography and Security}}
+\fancyhead[R]{\small\sffamily Laboratory Work No. 3}
+\fancyfoot[C]{\small\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+% Listings styling for ciphertext / tables
+\lstdefinestyle{ciphertext}{
+  basicstyle=\ttfamily\fontsize{8.0}{10.0}\selectfont,
+  backgroundcolor=\color{cipherbg},
+  frame=single,
+  rulecolor=\color{cipherframe},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=0.15cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.2cm,
+  framexrightmargin=0.2cm,
+  framesep=5pt,
+  aboveskip=6pt,
+  belowskip=6pt,
+  captionpos=b,
+  extendedchars=true,
+  literate={ă}{{\v{a}}}1 {Ă}{{\v{A}}}1 {â}{{\^{a}}}1 {Â}{{\^{A}}}1 {î}{{\^{i}}}1 {Î}{{\^{I}}}1 {ș}{{\cb{s}}}1 {Ș}{{\cb{S}}}1 {ț}{{\cb{t}}}1 {Ț}{{\cb{T}}}1 {ş}{{\c{s}}}1 {Ş}{{\c{S}}}1 {ţ}{{\c{t}}}1 {Ţ}{{\c{T}}}1 {—}{{--}}1
+}
+
+% Listings styling for Python source code
+\lstdefinestyle{pythoncode}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\fontsize{8.0}{10.0}\selectfont,
+  keywordstyle=\bfseries\color{keywordcolor},
+  stringstyle=\color{stringcolor},
+  commentstyle=\itshape\color{commentcolor},
+  numbers=left,
+  numberstyle=\tiny\color{numbercolor},
+  numbersep=7pt,
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=0.35cm,
+  xrightmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=6pt,
+  belowskip=6pt,
+  captionpos=b,
+  extendedchars=true,
+  literate={ă}{{\v{a}}}1 {Ă}{{\v{A}}}1 {â}{{\^{a}}}1 {Â}{{\^{A}}}1 {î}{{\^{i}}}1 {Î}{{\^{I}}}1 {ș}{{\cb{s}}}1 {Ș}{{\cb{S}}}1 {ț}{{\cb{t}}}1 {Ț}{{\cb{T}}}1 {ş}{{\c{s}}}1 {Ş}{{\c{S}}}1 {ţ}{{\c{t}}}1 {Ţ}{{\c{T}}}1
+}
+
+\begin{document}
+
+% ==============================================================================
+% TITLE PAGE
+% ==============================================================================
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begin{center}
+    \includegraphics[width=3.2cm]{UTM_Logo.png}\par
+    \vspace{0.25cm}
+
+    {\bfseries\fontsize{13}{16}\selectfont
+      MINISTRY OF EDUCATION AND RESEARCH\par
+      OF THE REPUBLIC OF MOLDOVA\par
+      Technical University of Moldova\par
+      Faculty of Computers, Informatics and Microelectronics\par
+      Department of Software Engineering and Automation\par
+    }
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{16}{19}\selectfont C\u{a}lin Poiat\u{a}, FAF-243\par}
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{32}{36}\selectfont Report\par}
+    \vspace{0.25cm}
+    {\itshape\fontsize{18}{22}\selectfont Laboratory Work No. 3\par}
+    {\bfseries\itshape\fontsize{18}{22}\selectfont Cryptography and Security\par}
+
+    \vspace{1.0cm}
+    {\fontsize{18}{22}\selectfont Topic: Polyalphabetic Ciphers\par}
+    \vspace{0.2cm}
+    {\fontsize{14}{17}\selectfont Implementation and Analysis of the Vigen\`ere Cipher for the Romanian Alphabet\par}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    {\fontsize{14}{17}\selectfont Checked by:}\par
+    \textbf{Maia Zaica}, \textit{university assistant}
+  \end{flushright}
+
+  \vfill
+  \begin{center}
+    {\bfseries\fontsize{13}{16}\selectfont Chi\cb{s}in\u{a}u -- 2026}
+  \end{center}
+\end{titlepage}
+
+% ==============================================================================
+% CONTENTS
+% ==============================================================================
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% INTRODUCTION
+% ==============================================================================
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+The primary objective of classical cryptography has historically been the design of ciphers capable of concealing statistical structures inherent to natural languages. In Laboratory Work No.~2, the vulnerabilities of monoalphabetic substitution were directly experienced: because a monoalphabetic cipher establishes a fixed bijection between the plaintext alphabet and the ciphertext alphabet, it completely preserves unigram, digram, and trigram frequencies. Consequently, frequency analysis, repeated pattern inspection, and vowel-consonant clustering allow an intercept to be fully deciphered without prior knowledge of the secret permutation.
+
+Polyalphabetic ciphers represent a pivotal historical and conceptual evolution designed to flatten this non-uniform frequency distribution. By substituting each letter using a variable permutation determined by its position and a repeating key, polyalphabetic algorithms obscure the direct relationship between message statistics and ciphertext symbols. The most famous and historically significant polyalphabetic cipher is the \textit{Vigen\`ere cipher}, famously hailed for centuries as \textit{le chiffre ind\'echiffrable} (the unbreakable cipher).
+
+In this laboratory work, I implemented and evaluated \textbf{Task 3.2}, assigned to even-numbered students in the academic register. The core mandate comprises:
+\begin{enumerate}
+  \item Implementing the Vigen\`ere encryption and decryption algorithm in Python adapted specifically for the \textbf{31-letter Romanian alphabet} ($A, \text{\u{A}}, \hat{A}, \dots, Z$), whose characters are numerically codified in the ring $\mathbb{Z}_{31} = \{0, 1, \dots, 30\}$.
+  \item Enforcing rigorous character validation: the input domain is strictly restricted to valid letters ($A\text{--}Z, a\text{--}z$ and Romanian diacritics $\text{\u{a}}, \hat{\text{a}}, \hat{\text{\i}}, \cb{s}, \cb{t}$). If an unauthorized symbol (digit, punctuation, special character) is entered, the system rejects the input and informs the user of the permissible character range.
+  \item Enforcing a minimum key length constraint: $|K| \ge 7$, ensuring that the polyalphabetic key space is non-trivial.
+  \item Implementing message preprocessing according to specifications: whitespace elimination followed by conversion to uppercase.
+  \item Supporting bi-directional operation (encryption and decryption) based on the modular arithmetic model:
+  \begin{equation}
+    c_i = (m_i + k_i) \pmod{31}, \qquad m_i = (c_i - k_i) \pmod{31}.
+  \end{equation}
+  \item Providing an educational tabular trace demonstrating the numeric modular transformations step-by-step.
+\end{enumerate}
+
+\newpage
+% ==============================================================================
+% 1 SHORT THEORY
+% ==============================================================================
+\section{Short Theory}
+
+\subsection{Limitations of Monoalphabetic Systems}
+
+A monoalphabetic cipher operates under a fixed permutation $\pi: \Sigma \to \Sigma$ such that ciphertext letter $c_i = \pi(m_i)$. If a language has probability distribution $P(X = \alpha)$ for letters $\alpha \in \Sigma$, then the ciphertext letter $\beta = \pi(\alpha)$ appears with probability:
+\begin{equation}
+  P(Y = \beta) = P(X = \pi^{-1}(\beta)) = P(X = \alpha).
+\end{equation}
+
+Because the entropy and relative frequencies are invariant under a static bijection, statistical attacks succeed quickly even when the theoretical key space $|\Sigma|!$ is astronomically large (e.g., $26! \approx 4.03 \times 10^{26}$ or $31! \approx 8.22 \times 10^{33}$).
+
+\subsection{The Polyalphabetic Principle}
+
+To eliminate monoalphabetic frequency leakage, polyalphabetic ciphers use multiple translation alphabets $\pi_0, \pi_1, \dots, \pi_{L-1}$ cyclically:
+\begin{equation}
+  c_i = \pi_{i \pmod L}(m_i).
+\end{equation}
+
+If letter `E' appears at positions $i_1$ and $i_2$ where $i_1 \not\equiv i_2 \pmod L$, it is encrypted under different permutations and yields different ciphertext characters. Conversely, identical ciphertext letters may originate from distinct plaintext characters. This combines high-frequency and low-frequency distributions, flattening the overall histogram toward a uniform distribution.
+
+The foundational concept was formulated by Leon Battista Alberti in 1467 using concentric cipher disks. In 1518, Johannes Trithemius introduced the \textit{Tabula Recta} (a square matrix of shifted alphabets). Giovan Battista Bellaso in 1553 introduced the keyword-driven polyalphabetic mechanism. Blaise de Vigen\`ere subsequently published an autokey variation in 1586, though historical convention later associated Bellaso's keyword cipher with Vigen\`ere's name.
+
+\subsection{Mathematical Model of the Vigen\`ere Cipher}
+
+Let $\Sigma$ be an alphabet of cardinality $N = |\Sigma|$, and let each character be associated with a unique index in the residue ring $\mathbb{Z}_N$:
+\begin{equation}
+  f: \Sigma \longleftrightarrow \mathbb{Z}_N = \{0, 1, \dots, N-1\}.
+\end{equation}
+
+Let the plaintext message be represented by indices $\mathbf{m} = (m_0, m_1, \dots, m_{n-1})$ and the key by indices $\mathbf{k} = (k_0, k_1, \dots, k_{L-1})$ of length $L \ge 7$. The keystream is extended periodically over the length of the message:
+\begin{equation}
+  \tilde{k}_i = k_{i \pmod L}, \quad \text{for } 0 \le i < n.
+\end{equation}
+
+The encryption transformation $E_k: \mathbb{Z}_N \to \mathbb{Z}_N$ is defined by modular addition:
+\begin{equation}
+  c_i = (m_i + \tilde{k}_i) \pmod N.
+  \label{eq:encrypt}
+\end{equation}
+
+The decryption transformation $D_k: \mathbb{Z}_N \to \mathbb{Z}_N$ is the additive inverse under modulo $N$:
+\begin{equation}
+  m_i = (c_i - \tilde{k}_i) \pmod N.
+  \label{eq:decrypt}
+\end{equation}
+
+Equations~\eqref{eq:encrypt} and~\eqref{eq:decrypt} satisfy the correctness guarantee $D_k(E_k(m_i)) = m_i$ because:
+\begin{equation}
+  (c_i - \tilde{k}_i) \pmod N = ((m_i + \tilde{k}_i) - \tilde{k}_i) \pmod N = m_i \pmod N = m_i.
+\end{equation}
+
+\subsection{The 31-Letter Romanian Alphabet}
+
+Task 3.2 specifies adapting the Vigen\`ere algorithm to the Romanian alphabet containing 31 letters. The official Romanian alphabet extends the 26 Latin letters with 5 specific diacritical letters: \u{A}, \^{A}, \^{I}, \cb{S}, and \cb{T}. 
+
+In standard Romanian alphabetical order, these 31 characters are indexed from $0$ to $30$, as outlined in Table~\ref{tab:ro_alphabet}.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4.2pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l*{16}{c}}
+\toprule
+\textbf{Letter} & A & \u{A} & \^{A} & B & C & D & E & F & G & H & I & \^{I} & J & K & L & M \\
+\textbf{Index}  & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15 \\
+\midrule
+\textbf{Letter} & N & O & P & Q & R & S & \cb{S} & T & \cb{T} & U & V & W & X & Y & Z & -- \\
+\textbf{Index}  & 16 & 17 & 18 & 19 & 20 & 21 & 22 & 23 & 24 & 25 & 26 & 27 & 28 & 29 & 30 & -- \\
+\bottomrule
+\end{tabular}
+\caption{Numerical codification of the 31-letter Romanian alphabet ($\mathbb{Z}_{31}$).}
+\label{tab:ro_alphabet}
+\end{table}
+
+An important mathematical property of this adaptation is that the alphabet size $N = 31$ is a \textbf{prime number}. In abstract algebra, $\mathbb{Z}_{31} = \mathbb{Z}/31\mathbb{Z}$ forms a finite field $\mathbb{F}_{31}$. Consequently:
+\begin{itemize}
+  \item Every non-zero shift $k_i \in \{1, 2, \dots, 30\}$ is coprime to $31$, meaning $\gcd(k_i, 31) = 1$.
+  \item Under repeated addition of any non-zero constant $k$, the orbit generates the entire group $\mathbb{Z}_{31}$ with maximal period 31, eliminating non-trivial sub-period degeneracies that can occur when $N$ is composite.
+\end{itemize}
+
+\subsection{Tabula Recta for the Romanian Alphabet}
+
+The classical geometric representation of the cipher is the \textit{Tabula Recta}, a square matrix of dimension $31 \times 31$ where each subsequent row is cyclically shifted by one position to the left. The row corresponding to key letter $k$ and the column corresponding to plaintext letter $m$ intersect at ciphertext letter $c = (m + k) \pmod{31}$.
+
+\begin{table}[H]
+\centering
+\fontsize{7.0}{8.5}\selectfont
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{c|*{12}{c}c*{4}{c}}
+\toprule
+& \textbf{A} & \textbf{\u{A}} & \textbf{\^{A}} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{E} & \textbf{\dots} & \textbf{\cb{S}} & \textbf{T} & \textbf{\cb{T}} & \textbf{U} & \textbf{\dots} & \textbf{Y} & \textbf{Z} \\
+\midrule
+\textbf{A (0)}  & A & \u{A} & \^{A} & B & C & D & E & \dots & \cb{S} & T & \cb{T} & U & \dots & Y & Z \\
+\textbf{\u{A} (1)} & \u{A} & \^{A} & B & C & D & E & F & \dots & T & \cb{T} & U & V & \dots & Z & A \\
+\textbf{\^{A} (2)} & \^{A} & B & C & D & E & F & G & \dots & \cb{T} & U & V & W & \dots & A & \u{A} \\
+\textbf{B (3)}  & B & C & D & E & F & G & H & \dots & U & V & W & X & \dots & \u{A} & \^{A} \\
+\textbf{C (4)}  & C & D & E & F & G & H & I & \dots & V & W & X & Y & \dots & \^{A} & B \\
+\textbf{\vdots} & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & $\ddots$ & \vdots & \vdots & \vdots & \vdots & $\ddots$ & \vdots & \vdots \\
+\textbf{Z (30)} & Z & A & \u{A} & \^{A} & B & C & D & \dots & S & \cb{S} & T & \cb{T} & \dots & W & X \\
+\bottomrule
+\end{tabular}
+\caption{Excerpt of the $31 \times 31$ Tabula Recta for the Romanian alphabet.}
+\label{tab:tabula_recta}
+\end{table}
+
+While the physical Tabula Recta was indispensable for manual cryptographers in the sixteenth to nineteenth centuries, computerized execution performs the direct modular addition and subtraction in $\mathcal{O}(1)$ time per character.
+
+\subsection{Cryptanalytic Vulnerabilities of Periodic Ciphers}
+
+Despite its historical reputation, the periodic Vigen\`ere cipher is not unconditionally secure. When the key length $L$ is fixed and repeats periodically, the cryptogram can be factored into $L$ independent monoalphabetic sub-ciphers:
+\begin{equation}
+  \mathbf{C}^{(j)} = (c_j, c_{j+L}, c_{j+2L}, \dots), \quad \text{for } 0 \le j < L.
+\end{equation}
+
+Each sub-cipher $\mathbf{C}^{(j)}$ is encrypted with a single Caesar shift $k_j$. Once $L$ is determined, standard monoalphabetic frequency analysis or chi-squared goodness-of-fit tests recover each $k_j$ independently.
+
+The key length $L$ can be deduced using two primary methods:
+\begin{enumerate}
+  \item \textbf{Kasiski Examination (1863):} Identical plaintext n-grams encrypted under the same key position yield identical ciphertext n-grams. The distance $d$ between repeated ciphertext strings will be a multiple of the key length $L$. By finding the greatest common divisor ($\gcd$) of observed distances, candidate values of $L$ are revealed.
+  \item \textbf{Friedman Test / Index of Coincidence (1925):} The Index of Coincidence ($IC$) measures the probability that two randomly selected letters from a text are identical:
+  \begin{equation}
+    IC = \frac{\sum_{i=0}^{N-1} f_i (f_i - 1)}{n(n - 1)}.
+  \end{equation}
+  For natural Romanian language, $IC_{\text{lang}} \approx 0.075$, while for a completely random text over 31 letters, $IC_{\text{rand}} = \frac{1}{31} \approx 0.0323$. As the key length $L$ increases, the overall ciphertext $IC$ drops toward $0.0323$. By testing trial periods $k$, the correct period $L$ exhibits an average coset $IC$ that surges back up to $\approx 0.075$.
+\end{enumerate}
+
+Enforcing a minimum key length $|K| \ge 7$, as required by Task 3.2, prevents trivial manual frequency cracking on short messages, because at least 7 cosets are interleaved.
+
+\newpage
+% ==============================================================================
+% 2 IMPLEMENTATION ARCHITECTURE
+% ==============================================================================
+\section{Implementation Architecture}
+
+\subsection{Program Architecture and Components}
+
+The software is implemented in Python (\texttt{vigenere.py}) to fulfill all specifications of Task 3.2. The application architecture is structured into four functional modules:
+\begin{enumerate}
+  \item \textbf{Alphabet Representation and Encoding:} Establishes the 31-character Romanian alphabet mapping to $\mathbb{Z}_{31} = \{0, 1, \dots, 30\}$ using bidirectional hash tables for $\mathcal{O}(1)$ lookups, along with diacritic normalization for character variants.
+  \item \textbf{Sanitization and Validation Pipeline:} Implements the required input transformations (whitespace elimination followed by uppercase conversion) and enforces alphabet range validation and key length constraints ($|K| \ge 7$).
+  \item \textbf{Modular Cryptographic Engine:} Executes the algebraic encryption and decryption transformations ($c_i = (m_i + k_i) \pmod{31}$ and $m_i = (c_i - k_i) \pmod{31}$) and formats the step-by-step arithmetic calculation table.
+  \item \textbf{Interactive User Interface:} Provides a console menu allowing the operator to select encryption or decryption, enter messages and keys, and view the resulting outputs.
+\end{enumerate}
+
+\subsection{Alphabet Encoding and Diacritic Normalization}
+
+The Romanian alphabet contains characters with diacritical marks. In Unicode, Romanian text may be represented using modern comma-below characters (preferred by ISO/IEC and the Romanian Academy) or legacy cedilla characters:
+\begin{itemize}
+  \item Standard comma-below: \texttt{\cb{S}} (\texttt{U+0218}), \texttt{\cb{s}} (\texttt{U+0219}), \texttt{\cb{T}} (\texttt{U+021A}), \texttt{\cb{t}} (\texttt{U+021B}).
+  \item Legacy cedilla: \texttt{\c{S}} (\texttt{U+015E}), \texttt{\c{s}} (\texttt{U+015F}), \texttt{\c{T}} (\texttt{U+0162}), \texttt{\c{t}} (\texttt{U+0163}).
+\end{itemize}
+
+To guarantee seamless user experience across different keyboard layouts and terminal encodings, the preprocessing module normalizes legacy cedilla glyphs to standard comma-below representations before validation.
+
+\subsection{Input Sanitization and Range Validation}
+
+Task 3.2 specifies:
+\begin{quote}
+  \textit{„Valorile caracterelor textului sunt cuprinse \^{i}ntre `A' \cb{s}i `Z', `a' \cb{s}i `z' \cb{s}i nu sunt permise alte valori. \^{I}n cazul \^{i}n care utilizatorul introduce alte valori -- i se va sugera diapazonul corect al caracterelor. \^{I}n mesaj mai \^{i}nt\^{a}i trebuie eliminate spa\cb{t}iile, apoi toate literele se vor transforma \^{i}n majuscule.”}
+\end{quote}
+
+The processing pipeline executes the following stages:
+\begin{enumerate}
+  \item \textbf{Whitespace Elimination:} All spaces, tabs, and newline characters are stripped using Python's \texttt{"".join(text.split())}.
+  \item \textbf{Case Transformation:} All remaining characters are converted to uppercase via \texttt{.upper()}. Python's Unicode library correctly handles Romanian diacritic case conversion (\texttt{\u{a}} $\to$ \texttt{\u{A}}, \texttt{\cb{s}} $\to$ \texttt{\cb{S}}, etc.).
+  \item \textbf{Alphabet Range Verification:} Every character is evaluated against the 31-letter set. If any non-alphabetical characters (e.g., digits $0\text{--}9$, punctuation marks, or mathematical symbols) are found, the system isolates the illegal characters and displays an explicit diagnostic message instructing the user that only letters from the Romanian alphabet are accepted.
+\end{enumerate}
+
+\subsection{Key Length Enforcement}
+
+The specification mandates: \textit{„Lungimea cheii nu trebuie s\u{a} fie mai mic\u{a} de 7.”}
+The function \texttt{validate\_key} validates that:
+\begin{equation}
+  |K_{\text{cleaned}}| \ge 7.
+\end{equation}
+If the cleaned key contains fewer than 7 characters, an informative error message is returned displaying the current length and prompting the user to supply a valid key.
+
+\subsection{Modular Calculation Engine and Table Display}
+
+The mathematical operations are implemented directly:
+\begin{itemize}
+  \item \textbf{Encryption:} \texttt{c\_idx = (CHAR\_TO\_IDX[ch] + CHAR\_TO\_IDX[k\_ch]) \% 31}
+  \item \textbf{Decryption:} \texttt{m\_idx = (CHAR\_TO\_IDX[ch] - CHAR\_TO\_IDX[k\_ch]) \% 31}
+\end{itemize}
+
+To provide complete visibility into the cipher's mechanics, the function \texttt{display\_calculation\_table} outputs a formatted breakdown identical to the worked example in the laboratory handout:
+\begin{itemize}
+  \item Row 1: Source text characters ($M$ or $C$).
+  \item Row 2: Keystream characters ($K$).
+  \item Row 3: Numeric indices of the source text ($0 \le m_i \le 30$).
+  \item Row 4: Numeric indices of the keystream ($0 \le k_i \le 30$).
+  \item Row 5: Arithmetic modulo result ($(m_i + k_i) \bmod 31$ or $(c_i - k_i) \bmod 31$).
+  \item Row 6: Resulting output characters.
+\end{itemize}
+
+\subsection{Interactive User Interface}
+
+In accordance with the specification:
+\begin{quote}
+  \textit{„Utilizatorul va putea alege opera\cb{t}ia -- criptare sau decriptare, va putea introduce cheia, mesajul sau criptograma \cb{s}i va ob\cb{t}ine criptograma sau mesajul decriptat.”}
+\end{quote}
+
+The application exposes a console-driven workflow providing:
+\begin{itemize}
+  \item A main menu prompting the user to choose between encryption, decryption, alphabet inspection, test suite execution, or program termination.
+  \item Continuous input loops that re-prompt upon encountering invalid inputs (undersized keys or illegal characters) while printing explicit diagnostic guidance.
+  \item Clear presentation of the processed plaintext, active key, resulting cryptogram, and formatted modular calculation table.
+\end{itemize}
+
+\newpage
+% ==============================================================================
+% 3 CODE LISTINGS
+% ==============================================================================
+\section{Python Source Code Listings}
+
+The complete implementation is self-contained in \texttt{vigenere.py}. The core functional components are presented below.
+
+\subsection{Alphabet Mapping and Normalization}
+
+Listing~\ref{lst:setup} establishes the 31-letter Romanian alphabet, bidirectional hash maps, and the Unicode normalization translation table.
+
+\begin{lstlisting}[style=pythoncode,caption={Alphabet definition and character normalization},label={lst:setup}]
+# Romanian alphabet with 31 letters in standard alphabetical order
+ALPHABET = "AĂÂBCDEFGHIÎJKLMNOPQRSȘTȚUVWXYZ"
+N = len(ALPHABET)
+CHAR_TO_IDX = {ch: i for i, ch in enumerate(ALPHABET)}
+IDX_TO_CHAR = {i: ch for i, ch in enumerate(ALPHABET)}
+
+# Maps legacy Romanian cedilla characters to standard comma-below variants
+CEDILLA_MAP = str.maketrans({"Ş": "Ș", "ş": "ș", "Ţ": "Ț", "ţ": "ț"})
+
+def clean_text(text: str) -> str:
+    text = text.translate(CEDILLA_MAP)
+    # Remove all whitespace before converting to uppercase
+    text = "".join(text.split())
+    return text.upper()
+
+def find_invalid_chars(text: str) -> list[str]:
+    # Returns characters that do not belong to the 31-letter Romanian alphabet
+    return sorted(list({ch for ch in text if ch not in CHAR_TO_IDX}))
+\end{lstlisting}
+
+\subsection{Input Validation Routines}
+
+Listing~\ref{lst:validation} implements strict validation for both the secret key and the user text.
+
+\begin{lstlisting}[style=pythoncode,caption={Validation functions for key and message},label={lst:validation}]
+def validate_key(raw_key: str) -> tuple[str | None, str | None]:
+    cleaned = clean_text(raw_key)
+    if len(cleaned) < 7:
+        return None, f"Eroare: Lungimea cheii trebuie să fie de cel puțin 7 caractere (lungime actuală: {len(cleaned)})."
+    invalid = find_invalid_chars(cleaned)
+    if invalid:
+        inv_str = ", ".join(f"'{c}'" for c in invalid)
+        hint = (
+            f"Eroare: Cheia conține caractere nepermise: {inv_str}.\n"
+            f"Diapazonul permis: literele alfabetului român (A-Z, Ă, Â, Î, Ș, Ț). "
+            f"Cifrele și semnele de punctuație nu sunt permise."
+        )
+        return None, hint
+    return cleaned, None
+
+def validate_message(raw_msg: str) -> tuple[str | None, str | None]:
+    cleaned = clean_text(raw_msg)
+    if not cleaned:
+        return None, "Eroare: Mesajul introdus este gol."
+    invalid = find_invalid_chars(cleaned)
+    if invalid:
+        inv_str = ", ".join(f"'{c}'" for c in invalid)
+        hint = (
+            f"Eroare: Textul conține caractere nepermise: {inv_str}.\n"
+            f"Diapazonul permis: literele alfabetului român (A-Z, Ă, Â, Î, Ș, Ț). "
+            f"Cifrele și semnele de punctuație nu sunt permise."
+        )
+        return None, hint
+    return cleaned, None
+\end{lstlisting}
+
+\newpage
+\subsection{Encryption, Decryption, and Tabular Output}
+
+Listing~\ref{lst:cipher_engine} contains the core mathematical transformations and the educational output table generator.
+
+\begin{lstlisting}[style=pythoncode,caption={Cryptographic engine and calculation table generator},label={lst:cipher_engine}]
+def encrypt(plaintext: str, key: str) -> str:
+    res = []
+    key_len = len(key)
+    for i, ch in enumerate(plaintext):
+        k_ch = key[i % key_len]
+        # Mathematical model: c_i = (m_i + k_i) mod 31
+        c_idx = (CHAR_TO_IDX[ch] + CHAR_TO_IDX[k_ch]) % N
+        res.append(IDX_TO_CHAR[c_idx])
+    return "".join(res)
+
+def decrypt(ciphertext: str, key: str) -> str:
+    res = []
+    key_len = len(key)
+    for i, ch in enumerate(ciphertext):
+        k_ch = key[i % key_len]
+        # Mathematical model: m_i = (c_i - k_i) mod 31
+        m_idx = (CHAR_TO_IDX[ch] - CHAR_TO_IDX[k_ch]) % N
+        res.append(IDX_TO_CHAR[m_idx])
+    return "".join(res)
+
+def display_calculation_table(text: str, key: str, is_encrypt: bool = True) -> None:
+    op_symbol = "+" if is_encrypt else "-"
+    key_len = len(key)
+    repeated_key = "".join(key[i % key_len] for i in range(len(text)))
+    text_nums = [CHAR_TO_IDX[c] for c in text]
+    key_nums = [CHAR_TO_IDX[c] for c in repeated_key]
+    
+    if is_encrypt:
+        res_nums = [(t + k) % N for t, k in zip(text_nums, key_nums)]
+    else:
+        res_nums = [(t - k) % N for t, k in zip(text_nums, key_nums)]
+    res_chars = [IDX_TO_CHAR[n] for n in res_nums]
+    
+    col_width = 4
+    header1 = "Text (M):" if is_encrypt else "Criptogramă (C):"
+    header2 = "Cheie (K):"
+    header3 = f"M {op_symbol} K (mod 31):" if is_encrypt else f"C {op_symbol} K (mod 31):"
+    header4 = "Rezultat:"
+    
+    chunk_size = 20
+    for start in range(0, len(text), chunk_size):
+        end = min(start + chunk_size, len(text))
+        print("\n" + "-" * 75)
+        print(f"{header1:<22} " + " ".join(f"{text[i]:>{col_width}}" for i in range(start, end)))
+        print(f"{header2:<22} " + " ".join(f"{repeated_key[i]:>{col_width}}" for i in range(start, end)))
+        print(f"{'Valori text:':<22} " + " ".join(f"{text_nums[i]:>{col_width}}" for i in range(start, end)))
+        print(f"{'Valori cheie:':<22} " + " ".join(f"{key_nums[i]:>{col_width}}" for i in range(start, end)))
+        print(f"{header3:<22} " + " ".join(f"{res_nums[i]:>{col_width}}" for i in range(start, end)))
+        print(f"{header4:<22} " + " ".join(f"{res_chars[i]:>{col_width}}" for i in range(start, end)))
+    print("-" * 75)
+\end{lstlisting}
+
+\newpage
+% ==============================================================================
+% 4 EXPERIMENTAL RESULTS & VERIFICATION
+% ==============================================================================
+\section{Experimental Results and Verification}
+
+To evaluate the functionality, accuracy, and fault tolerance of the software, multiple experiments were conducted covering standard text, diacritic-rich sentences, and invalid inputs.
+
+\subsection{Test Case 1: Standard Academic Text}
+
+\noindent\textbf{Input message:} \texttt{"UNIVERSITATEA TEHNICA A MOLDOVEI"}\par
+\noindent\textbf{Secret key:} \texttt{"CRIPTOGRAFIE"} (length $|K| = 12 \ge 7$)\par
+\smallskip
+
+\noindent\textbf{1. Preprocessing Stage:}
+\begin{itemize}
+  \item Spaces stripped: \texttt{"UNIVERSITATEATEHNICAAMOLDOVEI"} (length = 29 characters).
+  \item Characters verified: all belong to $\Sigma_{\text{ro}}$.
+  \item Key verified: length $12 \ge 7$, characters all belong to $\Sigma_{\text{ro}}$.
+\end{itemize}
+
+\noindent\textbf{2. Encryption Step-by-Step Table:}
+
+Table~\ref{tab:test1_trace} displays the numerical modular addition $(M + K) \bmod 31$ for the complete message.
+
+\begin{table}[H]
+\centering
+\fontsize{7.5}{9.0}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{l*{15}{c}}
+\toprule
+\textbf{Text $M$} & U & N & I & V & E & R & S & I & T & A & T & E & A & T & E \\
+\textbf{Key $K$}  & C & R & I & P & T & O & G & R & A & F & I & E & C & R & I \\
+\textbf{Val. $M$} & 25 & 16 & 10 & 26 & 6 & 20 & 21 & 10 & 23 & 0 & 23 & 6 & 0 & 23 & 6 \\
+\textbf{Val. $K$} & 4 & 20 & 10 & 18 & 23 & 17 & 8 & 20 & 0 & 7 & 10 & 6 & 4 & 20 & 10 \\
+\textbf{Sum $\bmod 31$} & 29 & 5 & 20 & 13 & 29 & 6 & 29 & 30 & 23 & 7 & 2 & 12 & 4 & 12 & 16 \\
+\textbf{Cipher $C$} & Y & D & R & K & Y & E & Y & Z & T & F & \^{A} & J & C & J & N \\
+\midrule
+\textbf{Text $M$} & H & N & I & C & A & A & M & O & L & D & O & V & E & I & -- \\
+\textbf{Key $K$}  & P & T & O & G & R & A & F & I & E & C & R & I & P & T & -- \\
+\textbf{Val. $M$} & 9 & 16 & 10 & 4 & 0 & 0 & 15 & 17 & 14 & 5 & 17 & 26 & 6 & 10 & -- \\
+\textbf{Val. $K$} & 18 & 23 & 17 & 8 & 20 & 0 & 7 & 10 & 6 & 4 & 20 & 10 & 18 & 23 & -- \\
+\textbf{Sum $\bmod 31$} & 27 & 8 & 27 & 12 & 20 & 0 & 22 & 27 & 20 & 9 & 6 & 5 & 24 & 2 & -- \\
+\textbf{Cipher $C$} & W & G & W & J & R & A & \cb{S} & W & R & H & E & D & \cb{T} & \^{A} & -- \\
+\bottomrule
+\end{tabular}
+\caption{Modular calculation table for Test Case 1 under encryption ($N = 31$).}
+\label{tab:test1_trace}
+\end{table}
+
+\noindent\textbf{Resulting Cryptogram:}
+\begin{lstlisting}[style=ciphertext]
+YDRKYEYZTFÂJCJNWGWJRAȘWRHEDȚÂ
+\end{lstlisting}
+
+\noindent\textbf{3. Decryption Verification:}
+
+Feeding the cryptogram \texttt{"YDRKYEYZTF\^{A}JCJNWGWJRA\cb{S}WRHED\cb{T}\^{A}"} and the key \texttt{"CRIPTOGRAFIE"} into the decryption module produces:
+\begin{lstlisting}[style=ciphertext]
+UNIVERSITATEATEHNICAAMOLDOVEI
+\end{lstlisting}
+The output matches the preprocessed plaintext character-for-character, validating mathematical inversion.
+
+\newpage
+\subsection{Test Case 2: Diacritic-Dense Romanian Message}
+
+To thoroughly verify diacritical mapping across the entire residue set $\mathbb{Z}_{31}$, a sentence featuring multiple Romanian diacritical letters was tested.
+
+\noindent\textbf{Input message:} \texttt{"\^{I}nv\u{a}\cb{t}\u{a}m\^{a}ntul este cheia succesului"}\par
+\noindent\textbf{Secret key:} \texttt{"SIGURAN\cb{T}\u{A}"} (length $|K| = 9 \ge 7$)\par
+\smallskip
+
+\noindent\textbf{1. Preprocessed Plaintext:}
+\begin{lstlisting}[style=ciphertext]
+ÎNVĂȚĂMÂNTULESTECHEIASUCCESULUI
+\end{lstlisting}
+Length: 31 characters.
+
+\noindent\textbf{2. Modular Encryption Calculation:}
+
+Table~\ref{tab:test2_trace} illustrates the resulting arithmetic operations mod 31.
+
+\begin{table}[H]
+\centering
+\fontsize{7.5}{9.0}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{l*{16}{c}}
+\toprule
+\textbf{Text $M$} & \^{I} & N & V & \u{A} & \cb{T} & \u{A} & M & \^{A} & N & T & U & L & E & S & T & E \\
+\textbf{Key $K$}  & S & I & G & U & R & A & N & \cb{T} & \u{A} & S & I & G & U & R & A & N \\
+\textbf{Val. $M$} & 11 & 16 & 26 & 1 & 24 & 1 & 15 & 2 & 16 & 23 & 25 & 14 & 6 & 21 & 23 & 6 \\
+\textbf{Val. $K$} & 21 & 10 & 8 & 25 & 20 & 0 & 16 & 24 & 1 & 21 & 10 & 8 & 25 & 20 & 0 & 16 \\
+\textbf{Sum $\bmod 31$} & 1 & 26 & 3 & 26 & 13 & 1 & 0 & 26 & 17 & 13 & 4 & 22 & 0 & 10 & 23 & 22 \\
+\textbf{Cipher $C$} & \u{A} & V & B & V & K & \u{A} & A & V & O & K & C & \cb{S} & A & I & T & \cb{S} \\
+\midrule
+\textbf{Text $M$} & C & H & E & I & A & S & U & C & C & E & S & U & L & U & I & -- \\
+\textbf{Key $K$}  & \cb{T} & \u{A} & S & I & G & U & R & A & N & \cb{T} & \u{A} & S & I & G & U & -- \\
+\textbf{Val. $M$} & 4 & 9 & 6 & 10 & 0 & 21 & 25 & 4 & 4 & 6 & 21 & 25 & 14 & 25 & 10 & -- \\
+\textbf{Val. $K$} & 24 & 1 & 21 & 10 & 8 & 25 & 20 & 0 & 16 & 24 & 1 & 21 & 10 & 8 & 25 & -- \\
+\textbf{Sum $\bmod 31$} & 28 & 10 & 27 & 20 & 8 & 15 & 14 & 4 & 20 & 30 & 22 & 15 & 24 & 2 & 4 & -- \\
+\textbf{Cipher $C$} & X & I & W & R & G & M & L & C & R & Z & \cb{S} & M & \cb{T} & \^{A} & C & -- \\
+\bottomrule
+\end{tabular}
+\caption{Modular calculation table for Test Case 2 featuring extensive diacritics.}
+\label{tab:test2_trace}
+\end{table}
+
+\noindent\textbf{Ciphertext Produced:}
+\begin{lstlisting}[style=ciphertext]
+ĂVBVKĂAVOKCȘAITȘXIWRGMLCRZȘMȚÂC
+\end{lstlisting}
+
+\noindent\textbf{Decryption Verification:}
+
+Executing decryption with key \texttt{"SIGURAN\cb{T}\u{A}"} restores the original message:
+\begin{lstlisting}[style=ciphertext]
+ÎNVĂȚĂMÂNTULESTECHEIASUCCESULUI
+\end{lstlisting}
+
+\subsection{Test Case 3: Error Handling and Constraint Enforcement}
+
+The program was subjected to edge-case and boundary inputs to verify strict adherence to the problem statement.
+
+\subsubsection{Enforcing Key Length Constraint \texorpdfstring{$|K| \ge 7$}{|K| >= 7}}
+When an undersized key is provided:
+\begin{lstlisting}[style=ciphertext]
+Introduceți cheia (minim 7 caractere): SECRET
+
+Eroare: Lungimea cheii trebuie să fie de cel puțin 7 caractere (lungime actuală: 6).
+Introduceți cheia (minim 7 caractere): 
+\end{lstlisting}
+The program halts execution of the cipher operation, displays the diagnostic error, and prompts for a compliant key.
+
+\subsubsection{Enforcing Valid Character Range}
+When a user attempts to encrypt text containing digits, punctuation, or symbols:
+\begin{lstlisting}[style=ciphertext]
+Introduceți mesajul clar: Criptografia in 2026 este esentiala!
+
+Eroare: Textul conține caractere nepermise: '!', '0', '2', '6'.
+Diapazonul permis: literele alfabetului român (A-Z, Ă, Â, Î, Ș, Ț). Cifrele și semnele de punctuație nu sunt permise.
+Introduceți mesajul clar: 
+\end{lstlisting}
+The system isolates the exact offending glyphs (\texttt{'!'}, \texttt{'0'}, \texttt{'2'}, \texttt{'6'}) and reminds the user of the permissible alphabet domain.
+
+\newpage
+% ==============================================================================
+% 5 CRYPTOGRAPHIC DISCUSSION & SECURITY EVALUATION
+% ==============================================================================
+\section{Cryptographic Discussion and Security Evaluation}
+
+\subsection{Key Space Analysis}
+
+In a brute-force exhaustive search scenario where the attacker attempts every possible key combination:
+\begin{equation}
+  |\mathcal{K}_L| = N^L = 31^L.
+\end{equation}
+
+Table~\ref{tab:keyspace} shows the rapid exponential growth of the key space as a function of key length $L$ for the 31-letter Romanian alphabet.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{12pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{crr}
+\toprule
+\textbf{Key Length $L$} & \textbf{Total Combinations ($31^L$)} & \textbf{Effective Entropy ($\approx \log_2(31^L)$)} \\
+\midrule
+1 (Caesar) & 31 & 4.95 bits \\
+3          & 29,791 & 14.86 bits \\
+5          & 28,629,151 & 24.77 bits \\
+6          & 887,503,681 & 29.73 bits \\
+\midrule
+\textbf{7 (Laboratory Minimum)} & \textbf{27,512,614,111} & \textbf{34.68 bits} \\
+10         & 819,628,286,980,801 & 49.54 bits \\
+12         & 788,294,220,111,940,001 & 59.45 bits \\
+16         & 727,880,181,961,846,900,000,000 & 79.27 bits \\
+\bottomrule
+\end{tabular}
+\caption{Key space size and entropy for various key lengths over $\mathbb{Z}_{31}$.}
+\label{tab:keyspace}
+\end{table}
+
+At the laboratory minimum key length $L = 7$, an exhaustive search requires testing over $2.75 \times 10^{10}$ keys, rendering purely manual attacks infeasible. For keys of length $L \ge 12$, the search space exceeds $7.88 \times 10^{17}$ candidate keys ($\approx 60$ bits of entropy).
+
+\subsection{Comparison: Periodic Vigen\`ere vs. One-Time Pad}
+
+The fundamental flaw of the standard Vigen\`ere cipher is keystream periodicity:
+\begin{equation}
+  \tilde{k}_{i+L} = \tilde{k}_i.
+\end{equation}
+
+Because the keystream repeats every $L$ characters, an adversary who gathers a ciphertext of length $M \gg L$ can distribute ciphertext symbols into $L$ bins. Each bin constitutes a simple monoalphabetic substitution whose letter frequency distribution directly reflects the plaintext language distribution shifted by $k_j$.
+
+In 1917, Gilbert Vernam proposed eliminating this periodic recurrence by generating a truly random keystream equal in length to the message ($L = |M|$) and using it exactly once. In 1949, Claude Shannon published his landmark paper \textit{Communication Theory of Secrecy Systems}, mathematically proving that if:
+\begin{enumerate}
+  \item The key is uniformly distributed: $P(K = k) = \frac{1}{|\mathcal{K}|}$,
+  \item The key is at least as long as the message: $|K| \ge |M|$,
+  \item The key is used exactly once and never reused,
+\end{enumerate}
+then the cipher achieves \textbf{perfect secrecy} (information-theoretic security):
+\begin{equation}
+  P(M = m \mid C = c) = P(M = m), \quad \forall m \in \mathcal{M}, c \in \mathcal{C}.
+\end{equation}
+
+In such a system (the One-Time Pad), intercepting the ciphertext provides zero Shannon mutual information regarding the underlying plaintext ($I(M; C) = 0$). Thus, the Vigen\`ere cipher represents both the conceptual ancestor of modern stream ciphers and the stepping stone toward information-theoretically secure encryption.
+
+\newpage
+% ==============================================================================
+% 6 CONCLUSIONS
+% ==============================================================================
+\section{Conclusions}
+
+In this laboratory work, I successfully implemented and analyzed the Vigen\`ere polyalphabetic cipher adapted for the 31-letter Romanian alphabet, fulfilling all requirements of Task 3.2.
+
+The key accomplishments and findings include:
+\begin{enumerate}
+  \item \textbf{Mathematical Rigor in $\mathbb{Z}_{31}$:} The standard 26-letter Caesar/Vigen\`ere formulations were successfully generalized to the ring of integers modulo 31. Because 31 is prime, the algebraic structure $(\mathbb{Z}_{31}, +, \cdot)$ forms a finite field $\mathbb{F}_{31}$, guaranteeing that every non-zero key element acts as a generator of maximal additive order 31.
+  \item \textbf{Robust Character and Diacritic Handling:} The implementation accommodates modern Romanian comma-below diacritics (\texttt{\cb{S}}, \texttt{\cb{T}}) as well as legacy cedilla forms (\texttt{\c{S}}, \texttt{\c{T}}), standardizing them cleanly.
+  \item \textbf{Strict Input Validation:} The program enforces the problem constraints by eliminating whitespace, transforming characters to uppercase, validating characters against the permissible Romanian alphabet domain, and providing diagnostic feedback when unauthorized characters are detected.
+  \item \textbf{Key Length Enforcement:} The requirement $|K| \ge 7$ is strictly enforced, ensuring an initial brute-force search space exceeding $2.75 \times 10^{10}$ permutations.
+  \item \textbf{Bidirectional Correctness:} Experimental verification confirmed that $D_K(E_K(M)) = M$ across standard and diacritic-rich Romanian test texts. Detailed tabular execution traces confirmed that each numeric modular calculation matches theoretical expectations.
+\end{enumerate}
+
+Through this implementation, the transition from monoalphabetic to polyalphabetic encryption was thoroughly demonstrated, illustrating both the significant security gains achieved by flattening frequency distributions and the inherent structural limitations of periodic keystreams.
+
+\end{document}
