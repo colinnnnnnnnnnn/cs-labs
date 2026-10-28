@@ -1,0 +1,1008 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{combelow}
+
+% Distinguished font pairing: Palatino body, Inconsolata mono, Helvetica sans
+\usepackage{newpxtext,newpxmath}
+\usepackage[scaled=0.88]{inconsolata}
+\usepackage[scaled=0.92]{helvet}
+
+\usepackage[left=2.2cm,right=2.0cm,top=2.2cm,bottom=2.2cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figures/}}
+\setstretch{1.15}
+\setlength{\parindent}{1.0cm}
+\setlength{\parskip}{0pt}
+
+% Color accents
+\definecolor{primary}{HTML}{1E3A5F}
+\definecolor{secondary}{HTML}{2563EB}
+\definecolor{cipherbg}{HTML}{F8FAFC}
+\definecolor{cipherframe}{HTML}{CBD5E1}
+\definecolor{plainbg}{HTML}{F3F8F4}
+\definecolor{plainframe}{HTML}{166534}
+
+% Clean section styling
+\titleformat{\section}
+  {\normalfont\bfseries\sffamily\color{primary}\fontsize{13}{16}\selectfont}
+  {\thesection}{0.7em}{\MakeUppercase}
+\titleformat{name=\section,numberless}
+  {\normalfont\bfseries\sffamily\color{primary}\fontsize{13}{16}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalfont\bfseries\sffamily\color{secondary}\fontsize{11.5}{14}\selectfont}
+  {\thesubsection}{0.6em}{}
+
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+% Headers and Footers
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\textit{Cryptography and Security}}
+\fancyhead[R]{\small\sffamily Laboratory Work No. 2}
+\fancyfoot[C]{\small\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+% Listings styling
+\lstdefinestyle{ciphertext}{
+  basicstyle=\ttfamily\fontsize{7.6}{9.4}\selectfont,
+  backgroundcolor=\color{cipherbg},
+  frame=single,
+  rulecolor=\color{cipherframe},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=0.15cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.2cm,
+  framexrightmargin=0.2cm,
+  framesep=5pt,
+  aboveskip=5pt,
+  belowskip=5pt,
+  captionpos=b,
+  extendedchars=true,
+  literate={—}{{--}}1 {“}{{``}}1 {”}{{''}}1
+}
+
+\lstdefinestyle{plaintext}{
+  style=ciphertext,
+  basicstyle=\ttfamily\fontsize{8.0}{9.8}\selectfont,
+  backgroundcolor=\color{plainbg},
+  rulecolor=\color{plainframe}
+}
+
+\newcommand{\caselegend}{%
+  \noindent\textbf{Reading convention: }
+  \texttt{CAPITALS} are unresolved ciphertext symbols; 
+  \texttt{lowercase} letters are confirmed plaintext substitutions.\par
+}
+
+\begin{document}
+
+% ==============================================================================
+% TITLE PAGE
+% ==============================================================================
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begin{center}
+    \includegraphics[width=3.2cm]{UTM_Logo.png}\par
+    \vspace{0.25cm}
+
+    {\bfseries\fontsize{13}{16}\selectfont
+      MINISTRY OF EDUCATION AND RESEARCH\par
+      OF THE REPUBLIC OF MOLDOVA\par
+      Technical University of Moldova\par
+      Faculty of Computers, Informatics and Microelectronics\par
+      Department of Software Engineering and Automation\par
+    }
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{16}{19}\selectfont C\u{a}lin Poiat\u{a}, FAF-243\par}
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{32}{36}\selectfont Report\par}
+    \vspace{0.25cm}
+    {\itshape\fontsize{18}{22}\selectfont Laboratory Work No. 2\par}
+    {\bfseries\itshape\fontsize{18}{22}\selectfont Cryptography and Security\par}
+
+    \vspace{1.0cm}
+    {\fontsize{18}{22}\selectfont Topic: Cryptanalysis of Monoalphabetic Ciphers\par}
+    \vspace{0.2cm}
+    {\fontsize{14}{17}\selectfont Frequency Analysis of Variant 20\par}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    {\fontsize{14}{17}\selectfont Checked by:}\par
+    \textbf{Maia Zaica}, \textit{university assistant}
+  \end{flushright}
+
+  \vfill
+  \begin{center}
+    {\bfseries\fontsize{13}{16}\selectfont Chi\cb{s}in\u{a}u -- 2026}
+  \end{center}
+\end{titlepage}
+
+% ==============================================================================
+% CONTENTS
+% ==============================================================================
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% INTRODUCTION
+% ==============================================================================
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+The purpose of this laboratory work is to recover an English plaintext encrypted with a monoalphabetic substitution cipher. I solved Variant 20 manually using the frequency-analysis approach and online service specified in the laboratory handout. The attack combines unigram frequencies with repeated patterns, common function words, and contextual deduction.
+
+At every stage below, confirmed plaintext letters are displayed in lowercase while unresolved ciphertext symbols remain in uppercase. This makes the progress of the attack visible and reproduces the notation used by the online tool. The complete text is included after every iteration, as required by the worked-example format in the handout.
+
+\newpage
+% ==============================================================================
+% 1 SHORT THEORY
+% ==============================================================================
+\section{Short Theory}
+
+\subsection{Monoalphabetic Substitution}
+
+In a monoalphabetic substitution cipher, every plaintext letter is replaced by one fixed ciphertext letter according to a permutation $\pi$ of the alphabet:
+\begin{equation}
+  y = \pi(x), \qquad x = \pi^{-1}(y).
+\end{equation}
+
+Spaces, punctuation marks, digits, and line breaks are not encrypted. Although there are $26! \approx 4.03 \times 10^{26}$ possible alphabet permutations, the cipher preserves the statistical structure of the underlying language: a frequent plaintext letter produces an identically frequent ciphertext symbol, repeated letters remain repeated, and word patterns remain directly visible.
+
+\subsection{Frequency and Pattern Analysis}
+
+Standard English text exhibits a characteristic letter distribution where \texttt{e}, \texttt{t}, \texttt{a}, \texttt{o}, \texttt{i}, and \texttt{n} are the most common letters. Frequency comparison provides starting hypotheses, but individual passages deviate from ideal averages. 
+
+Consequently, frequency counts must be cross-checked against common digraphs (\texttt{th}, \texttt{he}, \texttt{in}, \texttt{er}), trigraphs (\texttt{the}, \texttt{and}), isolated single-letter words (\texttt{a}, \texttt{I}), word lengths, and sentence context. The attack is iterative: each verified substitution updates the cryptogram, exposing new partial words and constraining subsequent choices.
+
+\newpage
+% ==============================================================================
+% 2 FREQUENCY ANALYSIS OF VARIANT 20
+% ==============================================================================
+\section{Frequency Analysis of Variant 20}
+
+\subsection{Initial Intercept}
+
+The intercepted ciphertext supplied for Variant 20 is shown below in full. Line wrapping is applied solely for visual clarity and does not modify the message.
+
+\caselegend
+\begin{lstlisting}[style=ciphertext,caption={Variant 20 intercepted ciphertext}]
+T CVR ZNGWQP AVCNIV WQV GNKVZAVI NUVGXGJ NC WQV OXPTIZTZVGWHNGCVIVGHV XG RTPQXGJWNG,
+OTXSF HNDIXVI PVIKXHV RTP PVW DU AVWRVVG WQVASTHL HQTZAVI TGO WQV PWTWV OVUTIWZVGW. TG
+NCCXHXTS JIXGGXGJSFIVZTILVO WQTW PWTWV'P DUUVI VHQVSNGP RVIV OVSXJQWVO RXWQ WQV
+HIFUWTG-TSFPWP' RNIL TGO IVTO WQV PNSDWXNGP VKVIF ZNIGXGJ RXWQ WQVXI NITGJV EDXHVTGO
+HNCCVV. WQV HNGCVIVGHV PNDJQW WN SXZXW WQV WNGGTJV NC HTUXWTS PQXUP,TGO TP GVJNWXTWXNGP
+RVIV UINHVVOXGJ WNRTIO XWP HQXVC IVPDSW--WQV CXKV-UNRVI WIVTWF WQTW THHNIOVO WNGGTJVP XG
+HVIWTXG ITWXNP WN WQV DGXWVOPWTWVP, AIXWTXG, CITGHV, XWTSF, TGO ETUTG--FTIOSVF'P WVTZ
+RTP IVTOXGJ WQVPVHIVW XGPWIDHWXNGP NC WQV GVJNWXTWNIP. "WQV ASTHL HQTZAVI,
+ANSWVO,QXOOVG, JDTIOVO, PVVP TSS, QVTIP TSS," QV RINWV STWVI, ITWQVIZVSNOITZTWXHTSSF.
+"WQNDJQ WQV ASXGOP TIV OITRG TGO WQV RXGONRP QVTKXSFHDIWTXGVO, XWP CTI-PVVLXGJ VFVP
+UVGVWITWV WQV PVHIVW HNGCVIVGHV HQTZAVIPTW RTPQXGJWNG, WNLFN, SNGONG, UTIXP, JVGVKT,
+INZV. XWP PVGPXWXKV VTIPHTWHQ WQV CTXGWVPW RQXPUVIXGJP XG WQV CNIVXJG HTUXWTSP NC WQV
+RNISO."VTHQ GTWXNG GTWDITSSF WIXVO WN NAWTXG WQV ZNPW CTKNITASV WNGGTJV ITWXNCNI XWPVSC;
+WQV ZNPW TJJIVPPXKV XG XWP VCCNIWP RTP ETUTG, RQXHQ VKVG WQVGRTP OIVTZXGJ VYUTGPXNGXPW
+OIVTZP XG TPXT ADW CVTIVO WN NCCVGO WQVDGXWVO PWTWVP. TW WQV QVXJQW NC WQV HNGCVIVGHV,
+RQVG ETUTG RTPOVZTGOXGJ T ITWXN NC 10 WN 7 RXWQ WQV DGXWVO PWTWVP TGO JIVTW AIXWTXG,WQV
+ASTHL HQTZAVI IVTO RQTW FTIOSVF STWVI HTSSVO WQV ZNPW XZUNIWTGWWVSVJITZ XW VKVI
+PNSKVO."XW XP GVHVPPTIF WN TKNXO TGF HSTPQ RXWQ JIVTW AIXWTXG TGO TZVIXHT,UTIWXHDSTISF
+TZVIXHT, XG IVJTIO WN WQV TIZTZVGW SXZXWTWXNG BDVPWXNG," WQVETUTGVPV CNIVXJG NCCXHV
+HTASVO XWP TZATPPTONI XG RTPQXGJWNG NGGNKVZAVI 28. "FND RXSS WN WQV DWZNPW ZTXGWTXG T
+ZXOOSV TWWXWDOV TGOIVONDASV FNDI VCCNIWP WN HTIIF NDW NDI UNSXHF. XG HTPV NC
+XGVKXWTASVGVHVPPXWF FND RXSS RNIL WN VPWTASXPQ FNDI PVHNGO UINUNPTS NC 10 WN 6.5. XC,XG
+PUXWV NC FNDI DWZNPW VCCNIWP, XW AVHNZVP GVHVPPTIF XG KXVR NC WQVPXWDTWXNG TGO XG WQV
+XGWVIVPWP NC JVGVITS UNSXHF WN CTSS ATHL NG FNDIUINUNPTS GN. 3, FND RXSS VGOVTKNI WN
+SXZXW WQV UNRVI NC HNGHVGWITWXNG TGOZTGVDKVI NC WQV UTHXCXH AF T JDTITGWVV WN IVODHV NI
+TW SVTPW WN ZTXGWTXGWQV PWTWDP BDN NC UTHXCXH OVCVGPVP TGO WN ZTLV TG TOVBDTWV
+IVPVIKTWXNGRQXHQ RXSS ZTLV HSVTI WQTW [WQXP XP] NDI XGWVGWXNG XG TJIVVXGJ WN T 10 WN 6
+ITWXN. GN4 XP WN AV TKNXOVO TP CTI TP UNPPXASV."VTHQ 0.5 XG WQV ITWXN ZVTGW 50,000 WNGP
+NC HTUXWTS PQXUP, NI TANDW TATWWSV PQXU TGO T QTSC. RXWQ WQV XGCNIZTWXNG XG WQXP ZVPPTJV
+WVSSXGJ WQVTZVIXHTG GVJNWXTWNIP WQTW ETUTGRNDSO FXVSO XC UIVPPVO, TSS WQVF QTO WNON RTP
+UIVPP. WQXP PVHIVWTIF NC PWTWV HQTISVP VKTGP QDJQVP OXO, TGO NGOVHVZAVI 10 ETUTG
+HTUXWDSTWVO, XGPWIDHWXGJ XWP GVJNWXTWNI, XG T HTASVIVTO AF WQV ASTHL HQTZAVI, WQTW
+"WQVIV XP GNWQXGJ WN ON ADW THHVUW WQVITWXN UINUNPVO AF WQV DGXWVO PWTWVP." TP PXJGVO,
+WQV CXKV-UNRVI WIVTWFTSSNWWVO HTUXWTS PQXUP WN WQV DGXWVO PWTWVP, JIVTW AIXWTXG, ETUTG,
+CITGHV,TGO XWTSF XG WQV ITWXN NC 10:10:6:3.3:3.3. XW RTP HNGPXOVITASF SVPP WQTGETUTG QTO
+QNUVO CNI. QDJQVP PVGW FTIOSVF T SVWWVI NC HNZZVGOTWXNG.ODIXGJ WQV HNGCVIVGHV, WQV ASTHL
+HQTZAVI QTO WDIGVO NDW ZNIV WQTG5,000 PNSDWXNGP TGO WITGPSTWXNGP. FTIOSVF GVTISF
+PDCCVIVO T GVIKNDPAIVTLONRG, TGO XG CVAIDTIF RVGW WN TIXMNGT CNI CNDI ZNGWQP WN
+IVHNKVIQXP QVTSWQ. PVKVITS NC QXP TPPXPWTGWP QTO TSIVTOF QTO WINDASV XG WQXPIVJTIO. NGV
+ATAASVO XGHNQVIVGWSF; T JXIS OIVTZVO NC HQTPXGJ TINDGO WQVAVOINNZ T ADSSONJ WQTW, RQVG
+HTDJQW, QTO "HNOV" RIXWWVG NG XWP PXOV;TGNWQVI HNDSO SXJQWVG WQV VGNIZNDP PTHL NC
+UVAASVP WQTW PQV HTIIXVO XG TIVHDIIXGJ GXJQWZTIV NGSF AF CXGOXGJ T PWNGV TSNGJ T SNGVSF
+AVTHQ WQTWVYTHWSF ZTWHQVO NGV NC QVI UVAASVP, RQXHQ PQV HNDSO WQVG HTPW XGWN WQVPVT. TSS
+WQIVV IVPXJGVO.
+\end{lstlisting}
+
+\subsection{Observed Frequencies}
+
+Evaluating the letter distribution of the 2,979 alphabetic characters reveals the empirical counts and percentages in Table~\ref{tab:frequencies}. The most frequent ciphertext letters are \texttt{V} with 363 occurrences (12.19\%), \texttt{W} with 310 (10.41\%), and \texttt{T} with 300 (10.07\%), followed by \texttt{G}, \texttt{X}, \texttt{N}, \texttt{I}, and \texttt{P} around 6.0--7.4\%.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{ccrcccl}
+\toprule
+\textbf{Rank} & \textbf{Cipher} & \textbf{Count} & \textbf{Freq. (\%)} & \textbf{Ref. Letter} & \textbf{Ref. (\%)} & \textbf{Target Candidate} \\
+\midrule
+1  & \texttt{V} & 363 & 12.19\% & \texttt{e} & 12.70\% & Primary candidate for \texttt{e} \\
+2  & \texttt{W} & 310 & 10.41\% & \texttt{t} & 9.06\%  & Primary candidate for \texttt{t} \\
+3  & \texttt{T} & 300 & 10.07\% & \texttt{a} & 8.17\%  & Single-letter word candidate (\texttt{a}) \\
+4  & \texttt{G} & 221 &  7.42\% & \texttt{o} & 7.51\%  & High consonant (\texttt{n}) \\
+5  & \texttt{X} & 213 &  7.15\% & \texttt{i} & 6.97\%  & Preposition vowel (\texttt{i}) \\
+6  & \texttt{N} & 212 &  7.12\% & \texttt{n} & 6.75\%  & Preposition vowel (\texttt{o}) \\
+7  & \texttt{I} & 192 &  6.45\% & \texttt{s} & 6.33\%  & Common consonant (\texttt{r}) \\
+8  & \texttt{P} & 178 &  5.98\% & \texttt{h} & 6.09\%  & Plural/copula consonant (\texttt{s}) \\
+9  & \texttt{Q} & 146 &  4.90\% & \texttt{r} & 5.99\%  & Trigraph component in \texttt{WQe} (\texttt{h}) \\
+10 & \texttt{O} & 117 &  3.93\% & \texttt{d} & 4.25\%  & Conjunction terminal (\texttt{d}) \\
+11 & \texttt{S} & 114 &  3.83\% & \texttt{l} & 4.03\%  & Liquid consonant (\texttt{l}) \\
+12 & \texttt{H} & 101 &  3.39\% & \texttt{c} & 2.78\%  & Consonant (\texttt{c}) \\
+13 & \texttt{C} &  72 &  2.42\% & \texttt{u} & 2.76\%  & Preposition consonant (\texttt{f}) \\
+14 & \texttt{D} &  64 &  2.15\% & \texttt{m} & 2.41\%  & Pronoun vowel (\texttt{u}) \\
+15 & \texttt{J} &  59 &  1.98\% & \texttt{w} & 2.36\%  & Consonant (\texttt{g}) \\
+16 & \texttt{Z} &  57 &  1.91\% & \texttt{f} & 2.23\%  & Noun consonant (\texttt{m}) \\
+17 & \texttt{A} &  56 &  1.88\% & \texttt{g} & 2.02\%  & Consonant (\texttt{b}) \\
+18 & \texttt{F} &  52 &  1.75\% & \texttt{y} & 1.97\%  & Suffix terminal (\texttt{y}) \\
+19 & \texttt{U} &  51 &  1.71\% & \texttt{p} & 1.93\%  & Consonant (\texttt{p}) \\
+20 & \texttt{R} &  46 &  1.54\% & \texttt{b} & 1.49\%  & Past auxiliary consonant (\texttt{w}) \\
+21 & \texttt{K} &  25 &  0.84\% & \texttt{v} & 0.98\%  & Low consonant (\texttt{v}) \\
+22 & \texttt{L} &  15 &  0.50\% & \texttt{k} & 0.77\%  & Low consonant (\texttt{k}) \\
+23 & \texttt{E} &   9 &  0.30\% & \texttt{j} & 0.15\%  & Low consonant (\texttt{j}) \\
+24 & \texttt{B} &   3 &  0.10\% & \texttt{x} & 0.15\%  & Rare consonant (\texttt{q}) \\
+25 & \texttt{Y} &   2 &  0.07\% & \texttt{q} & 0.10\%  & Rare consonant (\texttt{x}) \\
+26 & \texttt{M} &   1 &  0.03\% & \texttt{z} & 0.07\%  & Rare consonant (\texttt{z}) \\
+\bottomrule
+\end{tabular}
+\caption{Observed character frequencies in Variant 20 vs. reference English frequencies.}
+\label{tab:frequencies}
+\end{table}
+
+The dominant frequencies provide immediate candidate pairs, while the resulting word patterns at each substitution verify their validity.
+
+\newpage
+% ==============================================================================
+% 3 ITERATIVE DECODING PROCESS
+% ==============================================================================
+\section{Iterative Decoding Process}
+
+Each state below is cumulative. A letter changes to lowercase only in the iteration where its substitution is accepted; every still-undiscovered symbol remains uppercase.
+
+\caselegend
+
+\subsection{Iteration 1}
+
+\noindent\textbf{New substitutions:} \texttt{V}$\rightarrow$\texttt{e}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The frequency analysis tool indicates that \texttt{V} is by far the most frequent ciphertext letter, appearing 363 times (12.19\% of the intercept). In standard English, \texttt{e} is the most frequent letter (typically $\approx 12.7\%$). I therefore begin by testing \texttt{V} as \texttt{e}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 1}]
+T CeR ZNGWQP AeCNIe WQe GNKeZAeI NUeGXGJ NC WQe OXPTIZTZeGWHNGCeIeGHe XG RTPQXGJWNG,
+OTXSF HNDIXeI PeIKXHe RTP PeW DU AeWReeG WQeASTHL HQTZAeI TGO WQe PWTWe OeUTIWZeGW. TG
+NCCXHXTS JIXGGXGJSFIeZTILeO WQTW PWTWe'P DUUeI eHQeSNGP ReIe OeSXJQWeO RXWQ WQe
+HIFUWTG-TSFPWP' RNIL TGO IeTO WQe PNSDWXNGP eKeIF ZNIGXGJ RXWQ WQeXI NITGJe EDXHeTGO
+HNCCee. WQe HNGCeIeGHe PNDJQW WN SXZXW WQe WNGGTJe NC HTUXWTS PQXUP,TGO TP GeJNWXTWXNGP
+ReIe UINHeeOXGJ WNRTIO XWP HQXeC IePDSW--WQe CXKe-UNReI WIeTWF WQTW THHNIOeO WNGGTJeP XG
+HeIWTXG ITWXNP WN WQe DGXWeOPWTWeP, AIXWTXG, CITGHe, XWTSF, TGO ETUTG--FTIOSeF'P WeTZ
+RTP IeTOXGJ WQePeHIeW XGPWIDHWXNGP NC WQe GeJNWXTWNIP. "WQe ASTHL HQTZAeI,
+ANSWeO,QXOOeG, JDTIOeO, PeeP TSS, QeTIP TSS," Qe RINWe STWeI, ITWQeIZeSNOITZTWXHTSSF.
+"WQNDJQ WQe ASXGOP TIe OITRG TGO WQe RXGONRP QeTKXSFHDIWTXGeO, XWP CTI-PeeLXGJ eFeP
+UeGeWITWe WQe PeHIeW HNGCeIeGHe HQTZAeIPTW RTPQXGJWNG, WNLFN, SNGONG, UTIXP, JeGeKT,
+INZe. XWP PeGPXWXKe eTIPHTWHQ WQe CTXGWePW RQXPUeIXGJP XG WQe CNIeXJG HTUXWTSP NC WQe
+RNISO."eTHQ GTWXNG GTWDITSSF WIXeO WN NAWTXG WQe ZNPW CTKNITASe WNGGTJe ITWXNCNI XWPeSC;
+WQe ZNPW TJJIePPXKe XG XWP eCCNIWP RTP ETUTG, RQXHQ eKeG WQeGRTP OIeTZXGJ eYUTGPXNGXPW
+OIeTZP XG TPXT ADW CeTIeO WN NCCeGO WQeDGXWeO PWTWeP. TW WQe QeXJQW NC WQe HNGCeIeGHe,
+RQeG ETUTG RTPOeZTGOXGJ T ITWXN NC 10 WN 7 RXWQ WQe DGXWeO PWTWeP TGO JIeTW AIXWTXG,WQe
+ASTHL HQTZAeI IeTO RQTW FTIOSeF STWeI HTSSeO WQe ZNPW XZUNIWTGWWeSeJITZ XW eKeI
+PNSKeO."XW XP GeHePPTIF WN TKNXO TGF HSTPQ RXWQ JIeTW AIXWTXG TGO TZeIXHT,UTIWXHDSTISF
+TZeIXHT, XG IeJTIO WN WQe TIZTZeGW SXZXWTWXNG BDePWXNG," WQeETUTGePe CNIeXJG NCCXHe
+HTASeO XWP TZATPPTONI XG RTPQXGJWNG NGGNKeZAeI 28. "FND RXSS WN WQe DWZNPW ZTXGWTXG T
+ZXOOSe TWWXWDOe TGOIeONDASe FNDI eCCNIWP WN HTIIF NDW NDI UNSXHF. XG HTPe NC
+XGeKXWTASeGeHePPXWF FND RXSS RNIL WN ePWTASXPQ FNDI PeHNGO UINUNPTS NC 10 WN 6.5. XC,XG
+PUXWe NC FNDI DWZNPW eCCNIWP, XW AeHNZeP GeHePPTIF XG KXeR NC WQePXWDTWXNG TGO XG WQe
+XGWeIePWP NC JeGeITS UNSXHF WN CTSS ATHL NG FNDIUINUNPTS GN. 3, FND RXSS eGOeTKNI WN
+SXZXW WQe UNReI NC HNGHeGWITWXNG TGOZTGeDKeI NC WQe UTHXCXH AF T JDTITGWee WN IeODHe NI
+TW SeTPW WN ZTXGWTXGWQe PWTWDP BDN NC UTHXCXH OeCeGPeP TGO WN ZTLe TG TOeBDTWe
+IePeIKTWXNGRQXHQ RXSS ZTLe HSeTI WQTW [WQXP XP] NDI XGWeGWXNG XG TJIeeXGJ WN T 10 WN 6
+ITWXN. GN4 XP WN Ae TKNXOeO TP CTI TP UNPPXASe."eTHQ 0.5 XG WQe ITWXN ZeTGW 50,000 WNGP
+NC HTUXWTS PQXUP, NI TANDW TATWWSe PQXU TGO T QTSC. RXWQ WQe XGCNIZTWXNG XG WQXP ZePPTJe
+WeSSXGJ WQeTZeIXHTG GeJNWXTWNIP WQTW ETUTGRNDSO FXeSO XC UIePPeO, TSS WQeF QTO WNON RTP
+UIePP. WQXP PeHIeWTIF NC PWTWe HQTISeP eKTGP QDJQeP OXO, TGO NGOeHeZAeI 10 ETUTG
+HTUXWDSTWeO, XGPWIDHWXGJ XWP GeJNWXTWNI, XG T HTASeIeTO AF WQe ASTHL HQTZAeI, WQTW
+"WQeIe XP GNWQXGJ WN ON ADW THHeUW WQeITWXN UINUNPeO AF WQe DGXWeO PWTWeP." TP PXJGeO,
+WQe CXKe-UNReI WIeTWFTSSNWWeO HTUXWTS PQXUP WN WQe DGXWeO PWTWeP, JIeTW AIXWTXG, ETUTG,
+CITGHe,TGO XWTSF XG WQe ITWXN NC 10:10:6:3.3:3.3. XW RTP HNGPXOeITASF SePP WQTGETUTG QTO
+QNUeO CNI. QDJQeP PeGW FTIOSeF T SeWWeI NC HNZZeGOTWXNG.ODIXGJ WQe HNGCeIeGHe, WQe ASTHL
+HQTZAeI QTO WDIGeO NDW ZNIe WQTG5,000 PNSDWXNGP TGO WITGPSTWXNGP. FTIOSeF GeTISF
+PDCCeIeO T GeIKNDPAIeTLONRG, TGO XG CeAIDTIF ReGW WN TIXMNGT CNI CNDI ZNGWQP WN
+IeHNKeIQXP QeTSWQ. PeKeITS NC QXP TPPXPWTGWP QTO TSIeTOF QTO WINDASe XG WQXPIeJTIO. NGe
+ATAASeO XGHNQeIeGWSF; T JXIS OIeTZeO NC HQTPXGJ TINDGO WQeAeOINNZ T ADSSONJ WQTW, RQeG
+HTDJQW, QTO "HNOe" RIXWWeG NG XWP PXOe;TGNWQeI HNDSO SXJQWeG WQe eGNIZNDP PTHL NC
+UeAASeP WQTW PQe HTIIXeO XG TIeHDIIXGJ GXJQWZTIe NGSF AF CXGOXGJ T PWNGe TSNGJ T SNGeSF
+AeTHQ WQTWeYTHWSF ZTWHQeO NGe NC QeI UeAASeP, RQXHQ PQe HNDSO WQeG HTPW XGWN WQePeT. TSS
+WQIee IePXJGeO.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 2}
+
+\noindent\textbf{New substitutions:} \texttt{W}$\rightarrow$\texttt{t}, \texttt{Q}$\rightarrow$\texttt{h}.\par
+\smallskip
+\noindent\textbf{Reasoning.} After substituting \texttt{V} as \texttt{e}, the three-letter sequence \texttt{WQe} appears 36 times in the text. This fits the most common English word, the definite article \textit{the}. Furthermore, \texttt{W} is the second most frequent ciphertext letter (310 occurrences, 10.41\%), which matches the frequency of \texttt{t} in English ($9.1\%$). Hence, \texttt{W} becomes \texttt{t} and \texttt{Q} becomes \texttt{h}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 2}]
+T CeR ZNGthP AeCNIe the GNKeZAeI NUeGXGJ NC the OXPTIZTZeGtHNGCeIeGHe XG RTPhXGJtNG,
+OTXSF HNDIXeI PeIKXHe RTP Pet DU AetReeG theASTHL HhTZAeI TGO the PtTte OeUTItZeGt. TG
+NCCXHXTS JIXGGXGJSFIeZTILeO thTt PtTte'P DUUeI eHheSNGP ReIe OeSXJhteO RXth the
+HIFUtTG-TSFPtP' RNIL TGO IeTO the PNSDtXNGP eKeIF ZNIGXGJ RXth theXI NITGJe EDXHeTGO
+HNCCee. the HNGCeIeGHe PNDJht tN SXZXt the tNGGTJe NC HTUXtTS PhXUP,TGO TP GeJNtXTtXNGP
+ReIe UINHeeOXGJ tNRTIO XtP HhXeC IePDSt--the CXKe-UNReI tIeTtF thTt THHNIOeO tNGGTJeP XG
+HeItTXG ITtXNP tN the DGXteOPtTteP, AIXtTXG, CITGHe, XtTSF, TGO ETUTG--FTIOSeF'P teTZ
+RTP IeTOXGJ thePeHIet XGPtIDHtXNGP NC the GeJNtXTtNIP. "the ASTHL HhTZAeI,
+ANSteO,hXOOeG, JDTIOeO, PeeP TSS, heTIP TSS," he RINte STteI, ITtheIZeSNOITZTtXHTSSF.
+"thNDJh the ASXGOP TIe OITRG TGO the RXGONRP heTKXSFHDItTXGeO, XtP CTI-PeeLXGJ eFeP
+UeGetITte the PeHIet HNGCeIeGHe HhTZAeIPTt RTPhXGJtNG, tNLFN, SNGONG, UTIXP, JeGeKT,
+INZe. XtP PeGPXtXKe eTIPHTtHh the CTXGtePt RhXPUeIXGJP XG the CNIeXJG HTUXtTSP NC the
+RNISO."eTHh GTtXNG GTtDITSSF tIXeO tN NAtTXG the ZNPt CTKNITASe tNGGTJe ITtXNCNI XtPeSC;
+the ZNPt TJJIePPXKe XG XtP eCCNItP RTP ETUTG, RhXHh eKeG theGRTP OIeTZXGJ eYUTGPXNGXPt
+OIeTZP XG TPXT ADt CeTIeO tN NCCeGO theDGXteO PtTteP. Tt the heXJht NC the HNGCeIeGHe,
+RheG ETUTG RTPOeZTGOXGJ T ITtXN NC 10 tN 7 RXth the DGXteO PtTteP TGO JIeTt AIXtTXG,the
+ASTHL HhTZAeI IeTO RhTt FTIOSeF STteI HTSSeO the ZNPt XZUNItTGtteSeJITZ Xt eKeI
+PNSKeO."Xt XP GeHePPTIF tN TKNXO TGF HSTPh RXth JIeTt AIXtTXG TGO TZeIXHT,UTItXHDSTISF
+TZeIXHT, XG IeJTIO tN the TIZTZeGt SXZXtTtXNG BDePtXNG," theETUTGePe CNIeXJG NCCXHe
+HTASeO XtP TZATPPTONI XG RTPhXGJtNG NGGNKeZAeI 28. "FND RXSS tN the DtZNPt ZTXGtTXG T
+ZXOOSe TttXtDOe TGOIeONDASe FNDI eCCNItP tN HTIIF NDt NDI UNSXHF. XG HTPe NC
+XGeKXtTASeGeHePPXtF FND RXSS RNIL tN ePtTASXPh FNDI PeHNGO UINUNPTS NC 10 tN 6.5. XC,XG
+PUXte NC FNDI DtZNPt eCCNItP, Xt AeHNZeP GeHePPTIF XG KXeR NC thePXtDTtXNG TGO XG the
+XGteIePtP NC JeGeITS UNSXHF tN CTSS ATHL NG FNDIUINUNPTS GN. 3, FND RXSS eGOeTKNI tN
+SXZXt the UNReI NC HNGHeGtITtXNG TGOZTGeDKeI NC the UTHXCXH AF T JDTITGtee tN IeODHe NI
+Tt SeTPt tN ZTXGtTXGthe PtTtDP BDN NC UTHXCXH OeCeGPeP TGO tN ZTLe TG TOeBDTte
+IePeIKTtXNGRhXHh RXSS ZTLe HSeTI thTt [thXP XP] NDI XGteGtXNG XG TJIeeXGJ tN T 10 tN 6
+ITtXN. GN4 XP tN Ae TKNXOeO TP CTI TP UNPPXASe."eTHh 0.5 XG the ITtXN ZeTGt 50,000 tNGP
+NC HTUXtTS PhXUP, NI TANDt TATttSe PhXU TGO T hTSC. RXth the XGCNIZTtXNG XG thXP ZePPTJe
+teSSXGJ theTZeIXHTG GeJNtXTtNIP thTt ETUTGRNDSO FXeSO XC UIePPeO, TSS theF hTO tNON RTP
+UIePP. thXP PeHIetTIF NC PtTte HhTISeP eKTGP hDJheP OXO, TGO NGOeHeZAeI 10 ETUTG
+HTUXtDSTteO, XGPtIDHtXGJ XtP GeJNtXTtNI, XG T HTASeIeTO AF the ASTHL HhTZAeI, thTt
+"theIe XP GNthXGJ tN ON ADt THHeUt theITtXN UINUNPeO AF the DGXteO PtTteP." TP PXJGeO,
+the CXKe-UNReI tIeTtFTSSNtteO HTUXtTS PhXUP tN the DGXteO PtTteP, JIeTt AIXtTXG, ETUTG,
+CITGHe,TGO XtTSF XG the ITtXN NC 10:10:6:3.3:3.3. Xt RTP HNGPXOeITASF SePP thTGETUTG hTO
+hNUeO CNI. hDJheP PeGt FTIOSeF T SetteI NC HNZZeGOTtXNG.ODIXGJ the HNGCeIeGHe, the ASTHL
+HhTZAeI hTO tDIGeO NDt ZNIe thTG5,000 PNSDtXNGP TGO tITGPSTtXNGP. FTIOSeF GeTISF
+PDCCeIeO T GeIKNDPAIeTLONRG, TGO XG CeAIDTIF ReGt tN TIXMNGT CNI CNDI ZNGthP tN
+IeHNKeIhXP heTSth. PeKeITS NC hXP TPPXPtTGtP hTO TSIeTOF hTO tINDASe XG thXPIeJTIO. NGe
+ATAASeO XGHNheIeGtSF; T JXIS OIeTZeO NC HhTPXGJ TINDGO theAeOINNZ T ADSSONJ thTt, RheG
+HTDJht, hTO "HNOe" RIXtteG NG XtP PXOe;TGNtheI HNDSO SXJhteG the eGNIZNDP PTHL NC
+UeAASeP thTt Phe HTIIXeO XG TIeHDIIXGJ GXJhtZTIe NGSF AF CXGOXGJ T PtNGe TSNGJ T SNGeSF
+AeTHh thTteYTHtSF ZTtHheO NGe NC heI UeAASeP, RhXHh Phe HNDSO theG HTPt XGtN thePeT. TSS
+thIee IePXJGeO.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 3}
+
+\noindent\textbf{New substitutions:} \texttt{T}$\rightarrow$\texttt{a}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The letter \texttt{T} occurs isolated as a single-letter word 13 times. In English, the only standard single-letter words are \textit{a} and \textit{I}. Looking at the pattern \texttt{thTt}, substituting \texttt{T} as \texttt{a} produces \textit{that}. Additionally, \texttt{T} has the third highest frequency in the intercept (300 occurrences, 10.07\%), which corresponds to \texttt{a} ($8.2\%$). Thus, \texttt{T} becomes \texttt{a}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 3}]
+a CeR ZNGthP AeCNIe the GNKeZAeI NUeGXGJ NC the OXPaIZaZeGtHNGCeIeGHe XG RaPhXGJtNG,
+OaXSF HNDIXeI PeIKXHe RaP Pet DU AetReeG theASaHL HhaZAeI aGO the Ptate OeUaItZeGt. aG
+NCCXHXaS JIXGGXGJSFIeZaILeO that Ptate'P DUUeI eHheSNGP ReIe OeSXJhteO RXth the
+HIFUtaG-aSFPtP' RNIL aGO IeaO the PNSDtXNGP eKeIF ZNIGXGJ RXth theXI NIaGJe EDXHeaGO
+HNCCee. the HNGCeIeGHe PNDJht tN SXZXt the tNGGaJe NC HaUXtaS PhXUP,aGO aP GeJNtXatXNGP
+ReIe UINHeeOXGJ tNRaIO XtP HhXeC IePDSt--the CXKe-UNReI tIeatF that aHHNIOeO tNGGaJeP XG
+HeItaXG IatXNP tN the DGXteOPtateP, AIXtaXG, CIaGHe, XtaSF, aGO EaUaG--FaIOSeF'P teaZ
+RaP IeaOXGJ thePeHIet XGPtIDHtXNGP NC the GeJNtXatNIP. "the ASaHL HhaZAeI,
+ANSteO,hXOOeG, JDaIOeO, PeeP aSS, heaIP aSS," he RINte SateI, IatheIZeSNOIaZatXHaSSF.
+"thNDJh the ASXGOP aIe OIaRG aGO the RXGONRP heaKXSFHDItaXGeO, XtP CaI-PeeLXGJ eFeP
+UeGetIate the PeHIet HNGCeIeGHe HhaZAeIPat RaPhXGJtNG, tNLFN, SNGONG, UaIXP, JeGeKa,
+INZe. XtP PeGPXtXKe eaIPHatHh the CaXGtePt RhXPUeIXGJP XG the CNIeXJG HaUXtaSP NC the
+RNISO."eaHh GatXNG GatDIaSSF tIXeO tN NAtaXG the ZNPt CaKNIaASe tNGGaJe IatXNCNI XtPeSC;
+the ZNPt aJJIePPXKe XG XtP eCCNItP RaP EaUaG, RhXHh eKeG theGRaP OIeaZXGJ eYUaGPXNGXPt
+OIeaZP XG aPXa ADt CeaIeO tN NCCeGO theDGXteO PtateP. at the heXJht NC the HNGCeIeGHe,
+RheG EaUaG RaPOeZaGOXGJ a IatXN NC 10 tN 7 RXth the DGXteO PtateP aGO JIeat AIXtaXG,the
+ASaHL HhaZAeI IeaO Rhat FaIOSeF SateI HaSSeO the ZNPt XZUNItaGtteSeJIaZ Xt eKeI
+PNSKeO."Xt XP GeHePPaIF tN aKNXO aGF HSaPh RXth JIeat AIXtaXG aGO aZeIXHa,UaItXHDSaISF
+aZeIXHa, XG IeJaIO tN the aIZaZeGt SXZXtatXNG BDePtXNG," theEaUaGePe CNIeXJG NCCXHe
+HaASeO XtP aZAaPPaONI XG RaPhXGJtNG NGGNKeZAeI 28. "FND RXSS tN the DtZNPt ZaXGtaXG a
+ZXOOSe attXtDOe aGOIeONDASe FNDI eCCNItP tN HaIIF NDt NDI UNSXHF. XG HaPe NC
+XGeKXtaASeGeHePPXtF FND RXSS RNIL tN ePtaASXPh FNDI PeHNGO UINUNPaS NC 10 tN 6.5. XC,XG
+PUXte NC FNDI DtZNPt eCCNItP, Xt AeHNZeP GeHePPaIF XG KXeR NC thePXtDatXNG aGO XG the
+XGteIePtP NC JeGeIaS UNSXHF tN CaSS AaHL NG FNDIUINUNPaS GN. 3, FND RXSS eGOeaKNI tN
+SXZXt the UNReI NC HNGHeGtIatXNG aGOZaGeDKeI NC the UaHXCXH AF a JDaIaGtee tN IeODHe NI
+at SeaPt tN ZaXGtaXGthe PtatDP BDN NC UaHXCXH OeCeGPeP aGO tN ZaLe aG aOeBDate
+IePeIKatXNGRhXHh RXSS ZaLe HSeaI that [thXP XP] NDI XGteGtXNG XG aJIeeXGJ tN a 10 tN 6
+IatXN. GN4 XP tN Ae aKNXOeO aP CaI aP UNPPXASe."eaHh 0.5 XG the IatXN ZeaGt 50,000 tNGP
+NC HaUXtaS PhXUP, NI aANDt aAattSe PhXU aGO a haSC. RXth the XGCNIZatXNG XG thXP ZePPaJe
+teSSXGJ theaZeIXHaG GeJNtXatNIP that EaUaGRNDSO FXeSO XC UIePPeO, aSS theF haO tNON RaP
+UIePP. thXP PeHIetaIF NC Ptate HhaISeP eKaGP hDJheP OXO, aGO NGOeHeZAeI 10 EaUaG
+HaUXtDSateO, XGPtIDHtXGJ XtP GeJNtXatNI, XG a HaASeIeaO AF the ASaHL HhaZAeI, that
+"theIe XP GNthXGJ tN ON ADt aHHeUt theIatXN UINUNPeO AF the DGXteO PtateP." aP PXJGeO,
+the CXKe-UNReI tIeatFaSSNtteO HaUXtaS PhXUP tN the DGXteO PtateP, JIeat AIXtaXG, EaUaG,
+CIaGHe,aGO XtaSF XG the IatXN NC 10:10:6:3.3:3.3. Xt RaP HNGPXOeIaASF SePP thaGEaUaG haO
+hNUeO CNI. hDJheP PeGt FaIOSeF a SetteI NC HNZZeGOatXNG.ODIXGJ the HNGCeIeGHe, the ASaHL
+HhaZAeI haO tDIGeO NDt ZNIe thaG5,000 PNSDtXNGP aGO tIaGPSatXNGP. FaIOSeF GeaISF
+PDCCeIeO a GeIKNDPAIeaLONRG, aGO XG CeAIDaIF ReGt tN aIXMNGa CNI CNDI ZNGthP tN
+IeHNKeIhXP heaSth. PeKeIaS NC hXP aPPXPtaGtP haO aSIeaOF haO tINDASe XG thXPIeJaIO. NGe
+AaAASeO XGHNheIeGtSF; a JXIS OIeaZeO NC HhaPXGJ aINDGO theAeOINNZ a ADSSONJ that, RheG
+HaDJht, haO "HNOe" RIXtteG NG XtP PXOe;aGNtheI HNDSO SXJhteG the eGNIZNDP PaHL NC
+UeAASeP that Phe HaIIXeO XG aIeHDIIXGJ GXJhtZaIe NGSF AF CXGOXGJ a PtNGe aSNGJ a SNGeSF
+AeaHh thateYaHtSF ZatHheO NGe NC heI UeAASeP, RhXHh Phe HNDSO theG HaPt XGtN thePea. aSS
+thIee IePXJGeO.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 4}
+
+\noindent\textbf{New substitutions:} \texttt{N}$\rightarrow$\texttt{o}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The two-letter word \texttt{tN} appears 23 times. With \texttt{t} established, it is naturally read as \textit{to}. This assignment also resolves \texttt{thNse} into \textit{those} and produces valid vowel structures in words like \texttt{no}. Therefore, \texttt{N} becomes \texttt{o}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 4}]
+a CeR ZoGthP AeCoIe the GoKeZAeI oUeGXGJ oC the OXPaIZaZeGtHoGCeIeGHe XG RaPhXGJtoG,
+OaXSF HoDIXeI PeIKXHe RaP Pet DU AetReeG theASaHL HhaZAeI aGO the Ptate OeUaItZeGt. aG
+oCCXHXaS JIXGGXGJSFIeZaILeO that Ptate'P DUUeI eHheSoGP ReIe OeSXJhteO RXth the
+HIFUtaG-aSFPtP' RoIL aGO IeaO the PoSDtXoGP eKeIF ZoIGXGJ RXth theXI oIaGJe EDXHeaGO
+HoCCee. the HoGCeIeGHe PoDJht to SXZXt the toGGaJe oC HaUXtaS PhXUP,aGO aP GeJotXatXoGP
+ReIe UIoHeeOXGJ toRaIO XtP HhXeC IePDSt--the CXKe-UoReI tIeatF that aHHoIOeO toGGaJeP XG
+HeItaXG IatXoP to the DGXteOPtateP, AIXtaXG, CIaGHe, XtaSF, aGO EaUaG--FaIOSeF'P teaZ
+RaP IeaOXGJ thePeHIet XGPtIDHtXoGP oC the GeJotXatoIP. "the ASaHL HhaZAeI,
+AoSteO,hXOOeG, JDaIOeO, PeeP aSS, heaIP aSS," he RIote SateI, IatheIZeSoOIaZatXHaSSF.
+"thoDJh the ASXGOP aIe OIaRG aGO the RXGOoRP heaKXSFHDItaXGeO, XtP CaI-PeeLXGJ eFeP
+UeGetIate the PeHIet HoGCeIeGHe HhaZAeIPat RaPhXGJtoG, toLFo, SoGOoG, UaIXP, JeGeKa,
+IoZe. XtP PeGPXtXKe eaIPHatHh the CaXGtePt RhXPUeIXGJP XG the CoIeXJG HaUXtaSP oC the
+RoISO."eaHh GatXoG GatDIaSSF tIXeO to oAtaXG the ZoPt CaKoIaASe toGGaJe IatXoCoI XtPeSC;
+the ZoPt aJJIePPXKe XG XtP eCCoItP RaP EaUaG, RhXHh eKeG theGRaP OIeaZXGJ eYUaGPXoGXPt
+OIeaZP XG aPXa ADt CeaIeO to oCCeGO theDGXteO PtateP. at the heXJht oC the HoGCeIeGHe,
+RheG EaUaG RaPOeZaGOXGJ a IatXo oC 10 to 7 RXth the DGXteO PtateP aGO JIeat AIXtaXG,the
+ASaHL HhaZAeI IeaO Rhat FaIOSeF SateI HaSSeO the ZoPt XZUoItaGtteSeJIaZ Xt eKeI
+PoSKeO."Xt XP GeHePPaIF to aKoXO aGF HSaPh RXth JIeat AIXtaXG aGO aZeIXHa,UaItXHDSaISF
+aZeIXHa, XG IeJaIO to the aIZaZeGt SXZXtatXoG BDePtXoG," theEaUaGePe CoIeXJG oCCXHe
+HaASeO XtP aZAaPPaOoI XG RaPhXGJtoG oGGoKeZAeI 28. "FoD RXSS to the DtZoPt ZaXGtaXG a
+ZXOOSe attXtDOe aGOIeOoDASe FoDI eCCoItP to HaIIF oDt oDI UoSXHF. XG HaPe oC
+XGeKXtaASeGeHePPXtF FoD RXSS RoIL to ePtaASXPh FoDI PeHoGO UIoUoPaS oC 10 to 6.5. XC,XG
+PUXte oC FoDI DtZoPt eCCoItP, Xt AeHoZeP GeHePPaIF XG KXeR oC thePXtDatXoG aGO XG the
+XGteIePtP oC JeGeIaS UoSXHF to CaSS AaHL oG FoDIUIoUoPaS Go. 3, FoD RXSS eGOeaKoI to
+SXZXt the UoReI oC HoGHeGtIatXoG aGOZaGeDKeI oC the UaHXCXH AF a JDaIaGtee to IeODHe oI
+at SeaPt to ZaXGtaXGthe PtatDP BDo oC UaHXCXH OeCeGPeP aGO to ZaLe aG aOeBDate
+IePeIKatXoGRhXHh RXSS ZaLe HSeaI that [thXP XP] oDI XGteGtXoG XG aJIeeXGJ to a 10 to 6
+IatXo. Go4 XP to Ae aKoXOeO aP CaI aP UoPPXASe."eaHh 0.5 XG the IatXo ZeaGt 50,000 toGP
+oC HaUXtaS PhXUP, oI aAoDt aAattSe PhXU aGO a haSC. RXth the XGCoIZatXoG XG thXP ZePPaJe
+teSSXGJ theaZeIXHaG GeJotXatoIP that EaUaGRoDSO FXeSO XC UIePPeO, aSS theF haO toOo RaP
+UIePP. thXP PeHIetaIF oC Ptate HhaISeP eKaGP hDJheP OXO, aGO oGOeHeZAeI 10 EaUaG
+HaUXtDSateO, XGPtIDHtXGJ XtP GeJotXatoI, XG a HaASeIeaO AF the ASaHL HhaZAeI, that
+"theIe XP GothXGJ to Oo ADt aHHeUt theIatXo UIoUoPeO AF the DGXteO PtateP." aP PXJGeO,
+the CXKe-UoReI tIeatFaSSotteO HaUXtaS PhXUP to the DGXteO PtateP, JIeat AIXtaXG, EaUaG,
+CIaGHe,aGO XtaSF XG the IatXo oC 10:10:6:3.3:3.3. Xt RaP HoGPXOeIaASF SePP thaGEaUaG haO
+hoUeO CoI. hDJheP PeGt FaIOSeF a SetteI oC HoZZeGOatXoG.ODIXGJ the HoGCeIeGHe, the ASaHL
+HhaZAeI haO tDIGeO oDt ZoIe thaG5,000 PoSDtXoGP aGO tIaGPSatXoGP. FaIOSeF GeaISF
+PDCCeIeO a GeIKoDPAIeaLOoRG, aGO XG CeAIDaIF ReGt to aIXMoGa CoI CoDI ZoGthP to
+IeHoKeIhXP heaSth. PeKeIaS oC hXP aPPXPtaGtP haO aSIeaOF haO tIoDASe XG thXPIeJaIO. oGe
+AaAASeO XGHoheIeGtSF; a JXIS OIeaZeO oC HhaPXGJ aIoDGO theAeOIooZ a ADSSOoJ that, RheG
+HaDJht, haO "HoOe" RIXtteG oG XtP PXOe;aGotheI HoDSO SXJhteG the eGoIZoDP PaHL oC
+UeAASeP that Phe HaIIXeO XG aIeHDIIXGJ GXJhtZaIe oGSF AF CXGOXGJ a PtoGe aSoGJ a SoGeSF
+AeaHh thateYaHtSF ZatHheO oGe oC heI UeAASeP, RhXHh Phe HoDSO theG HaPt XGto thePea. aSS
+thIee IePXJGeO.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 5}
+
+\noindent\textbf{New substitutions:} \texttt{G}$\rightarrow$\texttt{n}, \texttt{O}$\rightarrow$\texttt{d}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The frequent three-letter pattern \texttt{aGO} (12 occurrences) clearly represents the coordinating conjunction \textit{and}. This determines \texttt{G} as \texttt{n} and \texttt{O} as \texttt{d}. It also completes \texttt{haO} as \textit{had} and \texttt{GOW} as \textit{not}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 5}]
+a CeR ZonthP AeCoIe the noKeZAeI oUenXnJ oC the dXPaIZaZentHonCeIenHe Xn RaPhXnJton,
+daXSF HoDIXeI PeIKXHe RaP Pet DU AetReen theASaHL HhaZAeI and the Ptate deUaItZent. an
+oCCXHXaS JIXnnXnJSFIeZaILed that Ptate'P DUUeI eHheSonP ReIe deSXJhted RXth the
+HIFUtan-aSFPtP' RoIL and Iead the PoSDtXonP eKeIF ZoInXnJ RXth theXI oIanJe EDXHeand
+HoCCee. the HonCeIenHe PoDJht to SXZXt the tonnaJe oC HaUXtaS PhXUP,and aP neJotXatXonP
+ReIe UIoHeedXnJ toRaId XtP HhXeC IePDSt--the CXKe-UoReI tIeatF that aHHoIded tonnaJeP Xn
+HeItaXn IatXoP to the DnXtedPtateP, AIXtaXn, CIanHe, XtaSF, and EaUan--FaIdSeF'P teaZ
+RaP IeadXnJ thePeHIet XnPtIDHtXonP oC the neJotXatoIP. "the ASaHL HhaZAeI,
+AoSted,hXdden, JDaIded, PeeP aSS, heaIP aSS," he RIote SateI, IatheIZeSodIaZatXHaSSF.
+"thoDJh the ASXndP aIe dIaRn and the RXndoRP heaKXSFHDItaXned, XtP CaI-PeeLXnJ eFeP
+UenetIate the PeHIet HonCeIenHe HhaZAeIPat RaPhXnJton, toLFo, Sondon, UaIXP, JeneKa,
+IoZe. XtP PenPXtXKe eaIPHatHh the CaXntePt RhXPUeIXnJP Xn the CoIeXJn HaUXtaSP oC the
+RoISd."eaHh natXon natDIaSSF tIXed to oAtaXn the ZoPt CaKoIaASe tonnaJe IatXoCoI XtPeSC;
+the ZoPt aJJIePPXKe Xn XtP eCCoItP RaP EaUan, RhXHh eKen thenRaP dIeaZXnJ eYUanPXonXPt
+dIeaZP Xn aPXa ADt CeaIed to oCCend theDnXted PtateP. at the heXJht oC the HonCeIenHe,
+Rhen EaUan RaPdeZandXnJ a IatXo oC 10 to 7 RXth the DnXted PtateP and JIeat AIXtaXn,the
+ASaHL HhaZAeI Iead Rhat FaIdSeF SateI HaSSed the ZoPt XZUoItantteSeJIaZ Xt eKeI
+PoSKed."Xt XP neHePPaIF to aKoXd anF HSaPh RXth JIeat AIXtaXn and aZeIXHa,UaItXHDSaISF
+aZeIXHa, Xn IeJaId to the aIZaZent SXZXtatXon BDePtXon," theEaUanePe CoIeXJn oCCXHe
+HaASed XtP aZAaPPadoI Xn RaPhXnJton onnoKeZAeI 28. "FoD RXSS to the DtZoPt ZaXntaXn a
+ZXddSe attXtDde andIedoDASe FoDI eCCoItP to HaIIF oDt oDI UoSXHF. Xn HaPe oC
+XneKXtaASeneHePPXtF FoD RXSS RoIL to ePtaASXPh FoDI PeHond UIoUoPaS oC 10 to 6.5. XC,Xn
+PUXte oC FoDI DtZoPt eCCoItP, Xt AeHoZeP neHePPaIF Xn KXeR oC thePXtDatXon and Xn the
+XnteIePtP oC JeneIaS UoSXHF to CaSS AaHL on FoDIUIoUoPaS no. 3, FoD RXSS endeaKoI to
+SXZXt the UoReI oC HonHentIatXon andZaneDKeI oC the UaHXCXH AF a JDaIantee to IedDHe oI
+at SeaPt to ZaXntaXnthe PtatDP BDo oC UaHXCXH deCenPeP and to ZaLe an adeBDate
+IePeIKatXonRhXHh RXSS ZaLe HSeaI that [thXP XP] oDI XntentXon Xn aJIeeXnJ to a 10 to 6
+IatXo. no4 XP to Ae aKoXded aP CaI aP UoPPXASe."eaHh 0.5 Xn the IatXo Zeant 50,000 tonP
+oC HaUXtaS PhXUP, oI aAoDt aAattSe PhXU and a haSC. RXth the XnCoIZatXon Xn thXP ZePPaJe
+teSSXnJ theaZeIXHan neJotXatoIP that EaUanRoDSd FXeSd XC UIePPed, aSS theF had todo RaP
+UIePP. thXP PeHIetaIF oC Ptate HhaISeP eKanP hDJheP dXd, and ondeHeZAeI 10 EaUan
+HaUXtDSated, XnPtIDHtXnJ XtP neJotXatoI, Xn a HaASeIead AF the ASaHL HhaZAeI, that
+"theIe XP nothXnJ to do ADt aHHeUt theIatXo UIoUoPed AF the DnXted PtateP." aP PXJned,
+the CXKe-UoReI tIeatFaSSotted HaUXtaS PhXUP to the DnXted PtateP, JIeat AIXtaXn, EaUan,
+CIanHe,and XtaSF Xn the IatXo oC 10:10:6:3.3:3.3. Xt RaP HonPXdeIaASF SePP thanEaUan had
+hoUed CoI. hDJheP Pent FaIdSeF a SetteI oC HoZZendatXon.dDIXnJ the HonCeIenHe, the ASaHL
+HhaZAeI had tDIned oDt ZoIe than5,000 PoSDtXonP and tIanPSatXonP. FaIdSeF neaISF
+PDCCeIed a neIKoDPAIeaLdoRn, and Xn CeAIDaIF Rent to aIXMona CoI CoDI ZonthP to
+IeHoKeIhXP heaSth. PeKeIaS oC hXP aPPXPtantP had aSIeadF had tIoDASe Xn thXPIeJaId. one
+AaAASed XnHoheIentSF; a JXIS dIeaZed oC HhaPXnJ aIoDnd theAedIooZ a ADSSdoJ that, Rhen
+HaDJht, had "Hode" RIXtten on XtP PXde;anotheI HoDSd SXJhten the enoIZoDP PaHL oC
+UeAASeP that Phe HaIIXed Xn aIeHDIIXnJ nXJhtZaIe onSF AF CXndXnJ a Ptone aSonJ a SoneSF
+AeaHh thateYaHtSF ZatHhed one oC heI UeAASeP, RhXHh Phe HoDSd then HaPt Xnto thePea. aSS
+thIee IePXJned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 6}
+
+\noindent\textbf{New substitutions:} \texttt{X}$\rightarrow$\texttt{i}, \texttt{P}$\rightarrow$\texttt{s}.\par
+\smallskip
+\noindent\textbf{Reasoning.} With \texttt{G=n} and \texttt{W=t}, the common two-letter words \texttt{Xn} and \texttt{Xt} become \textit{in} and \textit{it}, fixing \texttt{X} as \texttt{i}. The frequent word \texttt{XP} then completes as \textit{is}, establishing \texttt{P} as \texttt{s}. Furthermore, \texttt{XPs} becomes \textit{its} and \texttt{thXP} becomes \textit{this}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 6}]
+a CeR Zonths AeCoIe the noKeZAeI oUeninJ oC the disaIZaZentHonCeIenHe in RashinJton,
+daiSF HoDIieI seIKiHe Ras set DU AetReen theASaHL HhaZAeI and the state deUaItZent. an
+oCCiHiaS JIinninJSFIeZaILed that state's DUUeI eHheSons ReIe deSiJhted Rith the
+HIFUtan-aSFsts' RoIL and Iead the soSDtions eKeIF ZoIninJ Rith theiI oIanJe EDiHeand
+HoCCee. the HonCeIenHe soDJht to SiZit the tonnaJe oC HaUitaS shiUs,and as neJotiations
+ReIe UIoHeedinJ toRaId its HhieC IesDSt--the CiKe-UoReI tIeatF that aHHoIded tonnaJes in
+HeItain Iatios to the Dnitedstates, AIitain, CIanHe, itaSF, and EaUan--FaIdSeF's teaZ
+Ras IeadinJ theseHIet instIDHtions oC the neJotiatoIs. "the ASaHL HhaZAeI,
+AoSted,hidden, JDaIded, sees aSS, heaIs aSS," he RIote SateI, IatheIZeSodIaZatiHaSSF.
+"thoDJh the ASinds aIe dIaRn and the RindoRs heaKiSFHDItained, its CaI-seeLinJ eFes
+UenetIate the seHIet HonCeIenHe HhaZAeIsat RashinJton, toLFo, Sondon, UaIis, JeneKa,
+IoZe. its sensitiKe eaIsHatHh the Caintest RhisUeIinJs in the CoIeiJn HaUitaSs oC the
+RoISd."eaHh nation natDIaSSF tIied to oAtain the Zost CaKoIaASe tonnaJe IatioCoI itseSC;
+the Zost aJJIessiKe in its eCCoIts Ras EaUan, RhiHh eKen thenRas dIeaZinJ eYUansionist
+dIeaZs in asia ADt CeaIed to oCCend theDnited states. at the heiJht oC the HonCeIenHe,
+Rhen EaUan RasdeZandinJ a Iatio oC 10 to 7 Rith the Dnited states and JIeat AIitain,the
+ASaHL HhaZAeI Iead Rhat FaIdSeF SateI HaSSed the Zost iZUoItantteSeJIaZ it eKeI
+soSKed."it is neHessaIF to aKoid anF HSash Rith JIeat AIitain and aZeIiHa,UaItiHDSaISF
+aZeIiHa, in IeJaId to the aIZaZent SiZitation BDestion," theEaUanese CoIeiJn oCCiHe
+HaASed its aZAassadoI in RashinJton onnoKeZAeI 28. "FoD RiSS to the DtZost Zaintain a
+ZiddSe attitDde andIedoDASe FoDI eCCoIts to HaIIF oDt oDI UoSiHF. in Hase oC
+ineKitaASeneHessitF FoD RiSS RoIL to estaASish FoDI seHond UIoUosaS oC 10 to 6.5. iC,in
+sUite oC FoDI DtZost eCCoIts, it AeHoZes neHessaIF in KieR oC thesitDation and in the
+inteIests oC JeneIaS UoSiHF to CaSS AaHL on FoDIUIoUosaS no. 3, FoD RiSS endeaKoI to
+SiZit the UoReI oC HonHentIation andZaneDKeI oC the UaHiCiH AF a JDaIantee to IedDHe oI
+at Seast to Zaintainthe statDs BDo oC UaHiCiH deCenses and to ZaLe an adeBDate
+IeseIKationRhiHh RiSS ZaLe HSeaI that [this is] oDI intention in aJIeeinJ to a 10 to 6
+Iatio. no4 is to Ae aKoided as CaI as UossiASe."eaHh 0.5 in the Iatio Zeant 50,000 tons
+oC HaUitaS shiUs, oI aAoDt aAattSe shiU and a haSC. Rith the inCoIZation in this ZessaJe
+teSSinJ theaZeIiHan neJotiatoIs that EaUanRoDSd FieSd iC UIessed, aSS theF had todo Ras
+UIess. this seHIetaIF oC state HhaISes eKans hDJhes did, and ondeHeZAeI 10 EaUan
+HaUitDSated, instIDHtinJ its neJotiatoI, in a HaASeIead AF the ASaHL HhaZAeI, that
+"theIe is nothinJ to do ADt aHHeUt theIatio UIoUosed AF the Dnited states." as siJned,
+the CiKe-UoReI tIeatFaSSotted HaUitaS shiUs to the Dnited states, JIeat AIitain, EaUan,
+CIanHe,and itaSF in the Iatio oC 10:10:6:3.3:3.3. it Ras HonsideIaASF Sess thanEaUan had
+hoUed CoI. hDJhes sent FaIdSeF a SetteI oC HoZZendation.dDIinJ the HonCeIenHe, the ASaHL
+HhaZAeI had tDIned oDt ZoIe than5,000 soSDtions and tIansSations. FaIdSeF neaISF
+sDCCeIed a neIKoDsAIeaLdoRn, and in CeAIDaIF Rent to aIiMona CoI CoDI Zonths to
+IeHoKeIhis heaSth. seKeIaS oC his assistants had aSIeadF had tIoDASe in thisIeJaId. one
+AaAASed inHoheIentSF; a JiIS dIeaZed oC HhasinJ aIoDnd theAedIooZ a ADSSdoJ that, Rhen
+HaDJht, had "Hode" RIitten on its side;anotheI HoDSd SiJhten the enoIZoDs saHL oC
+UeAASes that she HaIIied in aIeHDIIinJ niJhtZaIe onSF AF CindinJ a stone aSonJ a SoneSF
+AeaHh thateYaHtSF ZatHhed one oC heI UeAASes, RhiHh she HoDSd then Hast into thesea. aSS
+thIee IesiJned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 7}
+
+\noindent\textbf{New substitutions:} \texttt{C}$\rightarrow$\texttt{f}, \texttt{R}$\rightarrow$\texttt{w}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The two-letter word \texttt{oC} (22 occurrences) represents the preposition \textit{of}, determining \texttt{C} as \texttt{f}. Meanwhile, the past-tense pattern \texttt{RtP} (with \texttt{T=a} and \texttt{P=s}) resolves to \textit{was}, fixing \texttt{R} as \texttt{w}. This also yields \texttt{Rith} $\rightarrow$ \textit{with} and \texttt{foR} $\rightarrow$ \textit{for}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 7}]
+a few Zonths AefoIe the noKeZAeI oUeninJ of the disaIZaZentHonfeIenHe in washinJton,
+daiSF HoDIieI seIKiHe was set DU Aetween theASaHL HhaZAeI and the state deUaItZent. an
+offiHiaS JIinninJSFIeZaILed that state's DUUeI eHheSons weIe deSiJhted with the
+HIFUtan-aSFsts' woIL and Iead the soSDtions eKeIF ZoIninJ with theiI oIanJe EDiHeand
+Hoffee. the HonfeIenHe soDJht to SiZit the tonnaJe of HaUitaS shiUs,and as neJotiations
+weIe UIoHeedinJ towaId its Hhief IesDSt--the fiKe-UoweI tIeatF that aHHoIded tonnaJes in
+HeItain Iatios to the Dnitedstates, AIitain, fIanHe, itaSF, and EaUan--FaIdSeF's teaZ
+was IeadinJ theseHIet instIDHtions of the neJotiatoIs. "the ASaHL HhaZAeI,
+AoSted,hidden, JDaIded, sees aSS, heaIs aSS," he wIote SateI, IatheIZeSodIaZatiHaSSF.
+"thoDJh the ASinds aIe dIawn and the windows heaKiSFHDItained, its faI-seeLinJ eFes
+UenetIate the seHIet HonfeIenHe HhaZAeIsat washinJton, toLFo, Sondon, UaIis, JeneKa,
+IoZe. its sensitiKe eaIsHatHh the faintest whisUeIinJs in the foIeiJn HaUitaSs of the
+woISd."eaHh nation natDIaSSF tIied to oAtain the Zost faKoIaASe tonnaJe IatiofoI itseSf;
+the Zost aJJIessiKe in its effoIts was EaUan, whiHh eKen thenwas dIeaZinJ eYUansionist
+dIeaZs in asia ADt feaIed to offend theDnited states. at the heiJht of the HonfeIenHe,
+when EaUan wasdeZandinJ a Iatio of 10 to 7 with the Dnited states and JIeat AIitain,the
+ASaHL HhaZAeI Iead what FaIdSeF SateI HaSSed the Zost iZUoItantteSeJIaZ it eKeI
+soSKed."it is neHessaIF to aKoid anF HSash with JIeat AIitain and aZeIiHa,UaItiHDSaISF
+aZeIiHa, in IeJaId to the aIZaZent SiZitation BDestion," theEaUanese foIeiJn offiHe
+HaASed its aZAassadoI in washinJton onnoKeZAeI 28. "FoD wiSS to the DtZost Zaintain a
+ZiddSe attitDde andIedoDASe FoDI effoIts to HaIIF oDt oDI UoSiHF. in Hase of
+ineKitaASeneHessitF FoD wiSS woIL to estaASish FoDI seHond UIoUosaS of 10 to 6.5. if,in
+sUite of FoDI DtZost effoIts, it AeHoZes neHessaIF in Kiew of thesitDation and in the
+inteIests of JeneIaS UoSiHF to faSS AaHL on FoDIUIoUosaS no. 3, FoD wiSS endeaKoI to
+SiZit the UoweI of HonHentIation andZaneDKeI of the UaHifiH AF a JDaIantee to IedDHe oI
+at Seast to Zaintainthe statDs BDo of UaHifiH defenses and to ZaLe an adeBDate
+IeseIKationwhiHh wiSS ZaLe HSeaI that [this is] oDI intention in aJIeeinJ to a 10 to 6
+Iatio. no4 is to Ae aKoided as faI as UossiASe."eaHh 0.5 in the Iatio Zeant 50,000 tons
+of HaUitaS shiUs, oI aAoDt aAattSe shiU and a haSf. with the infoIZation in this ZessaJe
+teSSinJ theaZeIiHan neJotiatoIs that EaUanwoDSd FieSd if UIessed, aSS theF had todo was
+UIess. this seHIetaIF of state HhaISes eKans hDJhes did, and ondeHeZAeI 10 EaUan
+HaUitDSated, instIDHtinJ its neJotiatoI, in a HaASeIead AF the ASaHL HhaZAeI, that
+"theIe is nothinJ to do ADt aHHeUt theIatio UIoUosed AF the Dnited states." as siJned,
+the fiKe-UoweI tIeatFaSSotted HaUitaS shiUs to the Dnited states, JIeat AIitain, EaUan,
+fIanHe,and itaSF in the Iatio of 10:10:6:3.3:3.3. it was HonsideIaASF Sess thanEaUan had
+hoUed foI. hDJhes sent FaIdSeF a SetteI of HoZZendation.dDIinJ the HonfeIenHe, the ASaHL
+HhaZAeI had tDIned oDt ZoIe than5,000 soSDtions and tIansSations. FaIdSeF neaISF
+sDffeIed a neIKoDsAIeaLdown, and in feAIDaIF went to aIiMona foI foDI Zonths to
+IeHoKeIhis heaSth. seKeIaS of his assistants had aSIeadF had tIoDASe in thisIeJaId. one
+AaAASed inHoheIentSF; a JiIS dIeaZed of HhasinJ aIoDnd theAedIooZ a ADSSdoJ that, when
+HaDJht, had "Hode" wIitten on its side;anotheI HoDSd SiJhten the enoIZoDs saHL of
+UeAASes that she HaIIied in aIeHDIIinJ niJhtZaIe onSF AF findinJ a stone aSonJ a SoneSF
+AeaHh thateYaHtSF ZatHhed one of heI UeAASes, whiHh she HoDSd then Hast into thesea. aSS
+thIee IesiJned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 8}
+
+\noindent\textbf{New substitutions:} \texttt{Z}$\rightarrow$\texttt{m}, \texttt{I}$\rightarrow$\texttt{r}, \texttt{A}$\rightarrow$\texttt{b}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The opening phrase \texttt{a CVR ZntthP AVfNIe} contains \texttt{a few} (since \texttt{CVR} with \texttt{f, e, w} is \textit{few}). Next, \texttt{ZntthP} resolves to \textit{months}, yielding \texttt{Z} as \texttt{m}. The word \texttt{AVfNIe} becomes \textit{before}, giving \texttt{A} as \texttt{b} and \texttt{I} as \texttt{r}. This also completes the calendar month \textit{november}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 8}]
+a few months before the noKember oUeninJ of the disarmamentHonferenHe in washinJton,
+daiSF HoDrier serKiHe was set DU between thebSaHL Hhamber and the state deUartment. an
+offiHiaS JrinninJSFremarLed that state's DUUer eHheSons were deSiJhted with the
+HrFUtan-aSFsts' worL and read the soSDtions eKerF morninJ with their oranJe EDiHeand
+Hoffee. the HonferenHe soDJht to Simit the tonnaJe of HaUitaS shiUs,and as neJotiations
+were UroHeedinJ toward its Hhief resDSt--the fiKe-Uower treatF that aHHorded tonnaJes in
+Hertain ratios to the Dnitedstates, britain, franHe, itaSF, and EaUan--FardSeF's team
+was readinJ theseHret instrDHtions of the neJotiators. "the bSaHL Hhamber,
+boSted,hidden, JDarded, sees aSS, hears aSS," he wrote Sater, rathermeSodramatiHaSSF.
+"thoDJh the bSinds are drawn and the windows heaKiSFHDrtained, its far-seeLinJ eFes
+Uenetrate the seHret HonferenHe Hhambersat washinJton, toLFo, Sondon, Uaris, JeneKa,
+rome. its sensitiKe earsHatHh the faintest whisUerinJs in the foreiJn HaUitaSs of the
+worSd."eaHh nation natDraSSF tried to obtain the most faKorabSe tonnaJe ratiofor itseSf;
+the most aJJressiKe in its efforts was EaUan, whiHh eKen thenwas dreaminJ eYUansionist
+dreams in asia bDt feared to offend theDnited states. at the heiJht of the HonferenHe,
+when EaUan wasdemandinJ a ratio of 10 to 7 with the Dnited states and Jreat britain,the
+bSaHL Hhamber read what FardSeF Sater HaSSed the most imUortantteSeJram it eKer
+soSKed."it is neHessarF to aKoid anF HSash with Jreat britain and ameriHa,UartiHDSarSF
+ameriHa, in reJard to the armament Simitation BDestion," theEaUanese foreiJn offiHe
+HabSed its ambassador in washinJton onnoKember 28. "FoD wiSS to the Dtmost maintain a
+middSe attitDde andredoDbSe FoDr efforts to HarrF oDt oDr UoSiHF. in Hase of
+ineKitabSeneHessitF FoD wiSS worL to estabSish FoDr seHond UroUosaS of 10 to 6.5. if,in
+sUite of FoDr Dtmost efforts, it beHomes neHessarF in Kiew of thesitDation and in the
+interests of JeneraS UoSiHF to faSS baHL on FoDrUroUosaS no. 3, FoD wiSS endeaKor to
+Simit the Uower of HonHentration andmaneDKer of the UaHifiH bF a JDarantee to redDHe or
+at Seast to maintainthe statDs BDo of UaHifiH defenses and to maLe an adeBDate
+reserKationwhiHh wiSS maLe HSear that [this is] oDr intention in aJreeinJ to a 10 to 6
+ratio. no4 is to be aKoided as far as UossibSe."eaHh 0.5 in the ratio meant 50,000 tons
+of HaUitaS shiUs, or aboDt abattSe shiU and a haSf. with the information in this messaJe
+teSSinJ theameriHan neJotiators that EaUanwoDSd FieSd if Uressed, aSS theF had todo was
+Uress. this seHretarF of state HharSes eKans hDJhes did, and ondeHember 10 EaUan
+HaUitDSated, instrDHtinJ its neJotiator, in a HabSeread bF the bSaHL Hhamber, that
+"there is nothinJ to do bDt aHHeUt theratio UroUosed bF the Dnited states." as siJned,
+the fiKe-Uower treatFaSSotted HaUitaS shiUs to the Dnited states, Jreat britain, EaUan,
+franHe,and itaSF in the ratio of 10:10:6:3.3:3.3. it was HonsiderabSF Sess thanEaUan had
+hoUed for. hDJhes sent FardSeF a Setter of Hommendation.dDrinJ the HonferenHe, the bSaHL
+Hhamber had tDrned oDt more than5,000 soSDtions and transSations. FardSeF nearSF
+sDffered a nerKoDsbreaLdown, and in febrDarF went to ariMona for foDr months to
+reHoKerhis heaSth. seKeraS of his assistants had aSreadF had troDbSe in thisreJard. one
+babbSed inHoherentSF; a JirS dreamed of HhasinJ aroDnd thebedroom a bDSSdoJ that, when
+HaDJht, had "Hode" written on its side;another HoDSd SiJhten the enormoDs saHL of
+UebbSes that she Harried in areHDrrinJ niJhtmare onSF bF findinJ a stone aSonJ a SoneSF
+beaHh thateYaHtSF matHhed one of her UebbSes, whiHh she HoDSd then Hast into thesea. aSS
+three resiJned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 9}
+
+\noindent\textbf{New substitutions:} \texttt{S}$\rightarrow$\texttt{l}, \texttt{K}$\rightarrow$\texttt{v}, \texttt{H}$\rightarrow$\texttt{c}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The sequence \texttt{daiSF PVIKxce} resolves to \textit{daily service}, which gives \texttt{S} as \texttt{l}, \texttt{K} as \texttt{v}, and \texttt{H} as \texttt{c}. Furthermore, \texttt{PVt DU} becomes \textit{set up}, \texttt{Pwtwv} confirms \textit{state}, and \texttt{HhaZAeI} becomes \textit{chamber}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 9}]
+a few months before the november oUeninJ of the disarmamentconference in washinJton,
+dailF coDrier service was set DU between theblacL chamber and the state deUartment. an
+official JrinninJlFremarLed that state's DUUer echelons were deliJhted with the
+crFUtan-alFsts' worL and read the solDtions everF morninJ with their oranJe EDiceand
+coffee. the conference soDJht to limit the tonnaJe of caUital shiUs,and as neJotiations
+were UroceedinJ toward its chief resDlt--the five-Uower treatF that accorded tonnaJes in
+certain ratios to the Dnitedstates, britain, france, italF, and EaUan--FardleF's team
+was readinJ thesecret instrDctions of the neJotiators. "the blacL chamber,
+bolted,hidden, JDarded, sees all, hears all," he wrote later, rathermelodramaticallF.
+"thoDJh the blinds are drawn and the windows heavilFcDrtained, its far-seeLinJ eFes
+Uenetrate the secret conference chambersat washinJton, toLFo, london, Uaris, Jeneva,
+rome. its sensitive earscatch the faintest whisUerinJs in the foreiJn caUitals of the
+world."each nation natDrallF tried to obtain the most favorable tonnaJe ratiofor itself;
+the most aJJressive in its efforts was EaUan, which even thenwas dreaminJ eYUansionist
+dreams in asia bDt feared to offend theDnited states. at the heiJht of the conference,
+when EaUan wasdemandinJ a ratio of 10 to 7 with the Dnited states and Jreat britain,the
+blacL chamber read what FardleF later called the most imUortantteleJram it ever
+solved."it is necessarF to avoid anF clash with Jreat britain and america,UarticDlarlF
+america, in reJard to the armament limitation BDestion," theEaUanese foreiJn office
+cabled its ambassador in washinJton onnovember 28. "FoD will to the Dtmost maintain a
+middle attitDde andredoDble FoDr efforts to carrF oDt oDr UolicF. in case of
+inevitablenecessitF FoD will worL to establish FoDr second UroUosal of 10 to 6.5. if,in
+sUite of FoDr Dtmost efforts, it becomes necessarF in view of thesitDation and in the
+interests of Jeneral UolicF to fall bacL on FoDrUroUosal no. 3, FoD will endeavor to
+limit the Uower of concentration andmaneDver of the Uacific bF a JDarantee to redDce or
+at least to maintainthe statDs BDo of Uacific defenses and to maLe an adeBDate
+reservationwhich will maLe clear that [this is] oDr intention in aJreeinJ to a 10 to 6
+ratio. no4 is to be avoided as far as Uossible."each 0.5 in the ratio meant 50,000 tons
+of caUital shiUs, or aboDt abattle shiU and a half. with the information in this messaJe
+tellinJ theamerican neJotiators that EaUanwoDld Field if Uressed, all theF had todo was
+Uress. this secretarF of state charles evans hDJhes did, and ondecember 10 EaUan
+caUitDlated, instrDctinJ its neJotiator, in a cableread bF the blacL chamber, that
+"there is nothinJ to do bDt acceUt theratio UroUosed bF the Dnited states." as siJned,
+the five-Uower treatFallotted caUital shiUs to the Dnited states, Jreat britain, EaUan,
+france,and italF in the ratio of 10:10:6:3.3:3.3. it was considerablF less thanEaUan had
+hoUed for. hDJhes sent FardleF a letter of commendation.dDrinJ the conference, the blacL
+chamber had tDrned oDt more than5,000 solDtions and translations. FardleF nearlF
+sDffered a nervoDsbreaLdown, and in febrDarF went to ariMona for foDr months to
+recoverhis health. several of his assistants had alreadF had troDble in thisreJard. one
+babbled incoherentlF; a Jirl dreamed of chasinJ aroDnd thebedroom a bDlldoJ that, when
+caDJht, had "code" written on its side;another coDld liJhten the enormoDs sacL of
+Uebbles that she carried in arecDrrinJ niJhtmare onlF bF findinJ a stone alonJ a lonelF
+beach thateYactlF matched one of her Uebbles, which she coDld then cast into thesea. all
+three resiJned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 10}
+
+\noindent\textbf{New substitutions:} \texttt{D}$\rightarrow$\texttt{u}, \texttt{U}$\rightarrow$\texttt{p}, \texttt{L}$\rightarrow$\texttt{k}.\par
+\smallskip
+\noindent\textbf{Reasoning.} From \textit{set up}, \texttt{D} becomes \texttt{u} and \texttt{U} becomes \texttt{p}. The title \texttt{AsthL HqtzAeI} then reads \textit{black chamber}, resolving \texttt{L} as \texttt{k}. This is further confirmed by \texttt{caUitaS shiUs} $\rightarrow$ \textit{capital ships} and \texttt{uonntJe} $\rightarrow$ \textit{tonnage}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 10}]
+a few months before the november openinJ of the disarmamentconference in washinJton,
+dailF courier service was set up between theblack chamber and the state department. an
+official JrinninJlFremarked that state's upper echelons were deliJhted with the
+crFptan-alFsts' work and read the solutions everF morninJ with their oranJe Euiceand
+coffee. the conference souJht to limit the tonnaJe of capital ships,and as neJotiations
+were proceedinJ toward its chief result--the five-power treatF that accorded tonnaJes in
+certain ratios to the unitedstates, britain, france, italF, and Eapan--FardleF's team
+was readinJ thesecret instructions of the neJotiators. "the black chamber,
+bolted,hidden, Juarded, sees all, hears all," he wrote later, rathermelodramaticallF.
+"thouJh the blinds are drawn and the windows heavilFcurtained, its far-seekinJ eFes
+penetrate the secret conference chambersat washinJton, tokFo, london, paris, Jeneva,
+rome. its sensitive earscatch the faintest whisperinJs in the foreiJn capitals of the
+world."each nation naturallF tried to obtain the most favorable tonnaJe ratiofor itself;
+the most aJJressive in its efforts was Eapan, which even thenwas dreaminJ eYpansionist
+dreams in asia but feared to offend theunited states. at the heiJht of the conference,
+when Eapan wasdemandinJ a ratio of 10 to 7 with the united states and Jreat britain,the
+black chamber read what FardleF later called the most importantteleJram it ever
+solved."it is necessarF to avoid anF clash with Jreat britain and america,particularlF
+america, in reJard to the armament limitation Buestion," theEapanese foreiJn office
+cabled its ambassador in washinJton onnovember 28. "Fou will to the utmost maintain a
+middle attitude andredouble Four efforts to carrF out our policF. in case of
+inevitablenecessitF Fou will work to establish Four second proposal of 10 to 6.5. if,in
+spite of Four utmost efforts, it becomes necessarF in view of thesituation and in the
+interests of Jeneral policF to fall back on Fourproposal no. 3, Fou will endeavor to
+limit the power of concentration andmaneuver of the pacific bF a Juarantee to reduce or
+at least to maintainthe status Buo of pacific defenses and to make an adeBuate
+reservationwhich will make clear that [this is] our intention in aJreeinJ to a 10 to 6
+ratio. no4 is to be avoided as far as possible."each 0.5 in the ratio meant 50,000 tons
+of capital ships, or about abattle ship and a half. with the information in this messaJe
+tellinJ theamerican neJotiators that Eapanwould Field if pressed, all theF had todo was
+press. this secretarF of state charles evans huJhes did, and ondecember 10 Eapan
+capitulated, instructinJ its neJotiator, in a cableread bF the black chamber, that
+"there is nothinJ to do but accept theratio proposed bF the united states." as siJned,
+the five-power treatFallotted capital ships to the united states, Jreat britain, Eapan,
+france,and italF in the ratio of 10:10:6:3.3:3.3. it was considerablF less thanEapan had
+hoped for. huJhes sent FardleF a letter of commendation.durinJ the conference, the black
+chamber had turned out more than5,000 solutions and translations. FardleF nearlF
+suffered a nervousbreakdown, and in februarF went to ariMona for four months to
+recoverhis health. several of his assistants had alreadF had trouble in thisreJard. one
+babbled incoherentlF; a Jirl dreamed of chasinJ around thebedroom a bulldoJ that, when
+cauJht, had "code" written on its side;another could liJhten the enormous sack of
+pebbles that she carried in arecurrinJ niJhtmare onlF bF findinJ a stone alonJ a lonelF
+beach thateYactlF matched one of her pebbles, which she could then cast into thesea. all
+three resiJned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 11}
+
+\noindent\textbf{New substitutions:} \texttt{J}$\rightarrow$\texttt{g}, \texttt{F}$\rightarrow$\texttt{y}, \texttt{E}$\rightarrow$\texttt{j}.\par
+\smallskip
+\noindent\textbf{Reasoning.} The adverb \texttt{JIXnnXnJSF} with doubled letters becomes \textit{grinningly}, giving \texttt{J} as \texttt{g} and \texttt{F} as \texttt{y}. In the context of the naval treaty, the nation \texttt{EtUtn} is \textit{Japan}, establishing \texttt{E} as \texttt{j}. Likewise, \texttt{YtIdSeF} resolves to the cryptanalyst \textit{Yardley}.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 11}]
+a few months before the november opening of the disarmamentconference in washington,
+daily courier service was set up between theblack chamber and the state department. an
+official grinninglyremarked that state's upper echelons were delighted with the
+cryptan-alysts' work and read the solutions every morning with their orange juiceand
+coffee. the conference sought to limit the tonnage of capital ships,and as negotiations
+were proceeding toward its chief result--the five-power treaty that accorded tonnages in
+certain ratios to the unitedstates, britain, france, italy, and japan--yardley's team
+was reading thesecret instructions of the negotiators. "the black chamber,
+bolted,hidden, guarded, sees all, hears all," he wrote later, rathermelodramatically.
+"though the blinds are drawn and the windows heavilycurtained, its far-seeking eyes
+penetrate the secret conference chambersat washington, tokyo, london, paris, geneva,
+rome. its sensitive earscatch the faintest whisperings in the foreign capitals of the
+world."each nation naturally tried to obtain the most favorable tonnage ratiofor itself;
+the most aggressive in its efforts was japan, which even thenwas dreaming eYpansionist
+dreams in asia but feared to offend theunited states. at the height of the conference,
+when japan wasdemanding a ratio of 10 to 7 with the united states and great britain,the
+black chamber read what yardley later called the most importanttelegram it ever
+solved."it is necessary to avoid any clash with great britain and america,particularly
+america, in regard to the armament limitation Buestion," thejapanese foreign office
+cabled its ambassador in washington onnovember 28. "you will to the utmost maintain a
+middle attitude andredouble your efforts to carry out our policy. in case of
+inevitablenecessity you will work to establish your second proposal of 10 to 6.5. if,in
+spite of your utmost efforts, it becomes necessary in view of thesituation and in the
+interests of general policy to fall back on yourproposal no. 3, you will endeavor to
+limit the power of concentration andmaneuver of the pacific by a guarantee to reduce or
+at least to maintainthe status Buo of pacific defenses and to make an adeBuate
+reservationwhich will make clear that [this is] our intention in agreeing to a 10 to 6
+ratio. no4 is to be avoided as far as possible."each 0.5 in the ratio meant 50,000 tons
+of capital ships, or about abattle ship and a half. with the information in this message
+telling theamerican negotiators that japanwould yield if pressed, all they had todo was
+press. this secretary of state charles evans hughes did, and ondecember 10 japan
+capitulated, instructing its negotiator, in a cableread by the black chamber, that
+"there is nothing to do but accept theratio proposed by the united states." as signed,
+the five-power treatyallotted capital ships to the united states, great britain, japan,
+france,and italy in the ratio of 10:10:6:3.3:3.3. it was considerably less thanjapan had
+hoped for. hughes sent yardley a letter of commendation.during the conference, the black
+chamber had turned out more than5,000 solutions and translations. yardley nearly
+suffered a nervousbreakdown, and in february went to ariMona for four months to
+recoverhis health. several of his assistants had already had trouble in thisregard. one
+babbled incoherently; a girl dreamed of chasing around thebedroom a bulldog that, when
+caught, had "code" written on its side;another could lighten the enormous sack of
+pebbles that she carried in arecurring nightmare only by finding a stone along a lonely
+beach thateYactly matched one of her pebbles, which she could then cast into thesea. all
+three resigned.
+\end{lstlisting}
+
+\newpage
+\subsection{Iteration 12}
+
+\noindent\textbf{New substitutions:} \texttt{B}$\rightarrow$\texttt{q}, \texttt{Y}$\rightarrow$\texttt{x}, \texttt{M}$\rightarrow$\texttt{z}.\par
+\smallskip
+\noindent\textbf{Reasoning.} Only three letters remain. In the diplomatic cable, \texttt{BDePtxnn} clearly spells \textit{question}, identifying \texttt{B} as \texttt{q}. The term \texttt{eYUtnsiNnist} resolves to \textit{expansionist}, fixing \texttt{Y} as \texttt{x}. Finally, \texttt{went to TIxMnt} resolves to \textit{Arizona}, identifying \texttt{M} as \texttt{z}. All 26 letters of the cipher alphabet are now resolved.
+
+\begin{lstlisting}[style=ciphertext,caption={Complete text after iteration 12}]
+a few months before the november opening of the disarmamentconference in washington,
+daily courier service was set up between theblack chamber and the state department. an
+official grinninglyremarked that state's upper echelons were delighted with the
+cryptan-alysts' work and read the solutions every morning with their orange juiceand
+coffee. the conference sought to limit the tonnage of capital ships,and as negotiations
+were proceeding toward its chief result--the five-power treaty that accorded tonnages in
+certain ratios to the unitedstates, britain, france, italy, and japan--yardley's team
+was reading thesecret instructions of the negotiators. "the black chamber,
+bolted,hidden, guarded, sees all, hears all," he wrote later, rathermelodramatically.
+"though the blinds are drawn and the windows heavilycurtained, its far-seeking eyes
+penetrate the secret conference chambersat washington, tokyo, london, paris, geneva,
+rome. its sensitive earscatch the faintest whisperings in the foreign capitals of the
+world."each nation naturally tried to obtain the most favorable tonnage ratiofor itself;
+the most aggressive in its efforts was japan, which even thenwas dreaming expansionist
+dreams in asia but feared to offend theunited states. at the height of the conference,
+when japan wasdemanding a ratio of 10 to 7 with the united states and great britain,the
+black chamber read what yardley later called the most importanttelegram it ever
+solved."it is necessary to avoid any clash with great britain and america,particularly
+america, in regard to the armament limitation question," thejapanese foreign office
+cabled its ambassador in washington onnovember 28. "you will to the utmost maintain a
+middle attitude andredouble your efforts to carry out our policy. in case of
+inevitablenecessity you will work to establish your second proposal of 10 to 6.5. if,in
+spite of your utmost efforts, it becomes necessary in view of thesituation and in the
+interests of general policy to fall back on yourproposal no. 3, you will endeavor to
+limit the power of concentration andmaneuver of the pacific by a guarantee to reduce or
+at least to maintainthe status quo of pacific defenses and to make an adequate
+reservationwhich will make clear that [this is] our intention in agreeing to a 10 to 6
+ratio. no4 is to be avoided as far as possible."each 0.5 in the ratio meant 50,000 tons
+of capital ships, or about abattle ship and a half. with the information in this message
+telling theamerican negotiators that japanwould yield if pressed, all they had todo was
+press. this secretary of state charles evans hughes did, and ondecember 10 japan
+capitulated, instructing its negotiator, in a cableread by the black chamber, that
+"there is nothing to do but accept theratio proposed by the united states." as signed,
+the five-power treatyallotted capital ships to the united states, great britain, japan,
+france,and italy in the ratio of 10:10:6:3.3:3.3. it was considerably less thanjapan had
+hoped for. hughes sent yardley a letter of commendation.during the conference, the black
+chamber had turned out more than5,000 solutions and translations. yardley nearly
+suffered a nervousbreakdown, and in february went to arizona for four months to
+recoverhis health. several of his assistants had already had trouble in thisregard. one
+babbled incoherently; a girl dreamed of chasing around thebedroom a bulldog that, when
+caught, had "code" written on its side;another could lighten the enormous sack of
+pebbles that she carried in arecurring nightmare only by finding a stone along a lonely
+beach thatexactly matched one of her pebbles, which she could then cast into thesea. all
+three resigned.
+\end{lstlisting}
+
+
+\newpage
+% ==============================================================================
+% 4 RECONSTRUCTED SUBSTITUTION ALPHABET
+% ==============================================================================
+\section{Reconstructed Substitution Alphabet}
+
+The completed key agrees with every occurrence in the ciphertext. The first row lists ciphertext letters in order of observed frequency; the second row gives their recovered plaintext equivalents.
+
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.25}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{>{\bfseries}l*{26}{c}}
+\toprule
+Ciphertext & V & W & T & G & X & N & I & P & Q & O & S & H & C & D & J & Z & A & F & U & R & K & L & E & B & Y & M \\
+Plaintext  & e & t & a & n & i & o & r & s & h & d & l & c & f & u & g & m & b & y & p & w & v & k & j & q & x & z \\
+\bottomrule
+\end{tabular}}
+\caption{Recovered substitution key for Variant 20, ordered by observed frequency.}
+\end{table}
+
+Equivalently, in alphabetical ciphertext order, the mapping is:
+
+\begin{center}
+\small\ttfamily
+A=b, B=q, C=f, D=u, E=j, F=y, G=n, H=c, I=r, J=g, K=v, L=k, M=z,\\
+N=o, O=d, P=s, Q=h, R=w, S=l, T=a, U=p, V=e, W=t, X=i, Y=x, Z=m.
+\end{center}
+
+\newpage
+% ==============================================================================
+% 5 FINAL PLAINTEXT
+% ==============================================================================
+\section{Final Plaintext}
+
+The website substitutes letters but preserves all non-letter characters. Several spaces were missing in the course PDF copy (e.g., \texttt{disarmamentconference}, \texttt{theblack}, \texttt{grinninglyremarked}, and \texttt{unitedstates}). After the cryptographic substitution was complete, I restored these evident word boundaries and applied standard capitalization for readability. No decoded letters were altered.
+
+\begin{lstlisting}[style=plaintext,caption={Recovered plaintext with restored word spacing}]
+A few months before the November opening of the disarmament conference in Washington, daily courier service was set up between the Black Chamber and the State Department. An official grinningly remarked that State's upper echelons were delighted with the cryptanalysts' work and read the solutions every morning with their orange juice and coffee. The conference sought to limit the tonnage of capital ships, and as negotiations were proceeding toward its chief result--the Five-Power Treaty that accorded tonnages in certain ratios to the United States, Britain, France, Italy, and Japan--Yardley's team was reading the secret instructions of the negotiators. "The Black Chamber, bolted, hidden, guarded, sees all, hears all," he wrote later, rather melodramatically. "Though the blinds are drawn and the windows heavily curtained, its far-seeking eyes penetrate the secret conference chambers at Washington, Tokyo, London, Paris, Geneva, Rome. Its sensitive ears catch the faintest whisperings in the foreign capitals of the world."
+
+Each nation naturally tried to obtain the most favorable tonnage ratio for itself; the most aggressive in its efforts was Japan, which even then was dreaming expansionist dreams in Asia but feared to offend the United States. At the height of the conference, when Japan was demanding a ratio of 10 to 7 with the United States and Great Britain, the Black Chamber read what Yardley later called the most important telegram it ever solved.
+
+"It is necessary to avoid any clash with Great Britain and America, particularly America, in regard to the armament limitation question," the Japanese Foreign Office cabled its ambassador in Washington on November 28. "You will to the utmost maintain a middle attitude and redouble your efforts to carry out our policy. In case of inevitable necessity you will work to establish your second proposal of 10 to 6.5. If, in spite of your utmost efforts, it becomes necessary in view of the situation and in the interests of general policy to fall back on your proposal No. 3, you will endeavor to limit the power of concentration and maneuver of the Pacific by a guarantee to reduce or at least to maintain the status quo of Pacific defenses and to make an adequate reservation which will make clear that [this is] our intention in agreeing to a 10 to 6 ratio. No. 4 is to be avoided as far as possible."
+
+Each 0.5 in the ratio meant 50,000 tons of capital ships, or about a battleship and a half. With the information in this message telling the American negotiators that Japan would yield if pressed, all they had to do was press. This Secretary of State Charles Evans Hughes did, and on December 10 Japan capitulated, instructing its negotiator, in a cable read by the Black Chamber, that "there is nothing to do but accept the ratio proposed by the United States." As signed, the Five-Power Treaty allotted capital ships to the United States, Great Britain, Japan, France, and Italy in the ratio of 10:10:6:3.3:3.3. It was considerably less than Japan had hoped for. Hughes sent Yardley a letter of commendation.
+
+During the conference, the Black Chamber had turned out more than 5,000 solutions and translations. Yardley nearly suffered a nervous breakdown, and in February went to Arizona for four months to recover his health. Several of his assistants had already had trouble in this regard. One babbled incoherently; a girl dreamed of chasing around the bedroom a bulldog that, when caught, had "code" written on its side; another could lighten the enormous sack of pebbles that she carried in a recurring nightmare only by finding a stone along a lonely beach that exactly matched one of her pebbles, which she could then cast into the sea. All three resigned.
+\end{lstlisting}
+
+% ==============================================================================
+% 6 CONCLUSIONS
+% ==============================================================================
+\section{Conclusions}
+
+The Variant 20 cryptogram was completely recovered in twelve iterations. The initial hypotheses were derived from the highest ciphertext frequencies, \texttt{V} and \texttt{W}, corresponding to \texttt{e} and \texttt{t}. Frequency evidence became fully reliable when combined with contextual word structures: \texttt{WQe} revealed \textit{the}, \texttt{aGO} revealed \textit{and}, \texttt{thNse} revealed \textit{those}, and distinctive names such as \textit{Black Chamber}, \textit{Japan}, \textit{Yardley}, and \textit{Hughes} confirmed the remaining assignments.
+
+This exercise illustrates why monoalphabetic substitution ciphers are inherently insecure despite their enormous nominal key space ($26! \approx 4.03 \times 10^{26}$). The cipher preserves letter frequencies, digrams, word lengths, and syntactic structures without diffusion, allowing an attacker to break the encryption through systematic statistical and linguistic analysis.
+
+\end{document}
